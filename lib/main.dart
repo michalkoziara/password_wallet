@@ -19,8 +19,8 @@ void main() {
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    systemNavigationBarColor: Colors.green,
-    systemNavigationBarDividerColor: Colors.blue,
+    systemNavigationBarColor: Color(0xFF9B94E9),
+    systemNavigationBarDividerColor: Color(0xFF9B94E9),
   ));
 
   runApp(PasswordWalletApp());
