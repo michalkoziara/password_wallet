@@ -10,7 +10,7 @@ class KeyboardBloc extends Bloc<KeyboardEvent, KeyboardState> {
   KeyboardBloc() : super(KeyboardInvisibleState());
 
   @override
-  String toString() => 'SingleGameBloc';
+  String toString() => 'KeyboardBloc';
 
   @override
   Stream<KeyboardState> mapEventToState(KeyboardEvent event) async* {

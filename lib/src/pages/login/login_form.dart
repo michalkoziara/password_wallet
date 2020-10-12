@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 
-/// A form that allows user to log in.
+import '../../blocs/registration/registration.dart';
+
+/// A form that allows user to sign in.
 class LoginForm extends StatefulWidget {
   /// Creates login form.
   const LoginForm();
@@ -62,8 +66,17 @@ class _LoginFormState extends State<LoginForm> {
                 return null;
               },
             ),
-            const SizedBox(
-              height: 20,
+            BlocBuilder<RegistrationBloc, RegistrationState>(
+              builder: (BuildContext context, RegistrationState state) {
+                return AnimatedContainer(
+                  curve: Curves.easeOut,
+                  duration: const Duration(
+                    milliseconds: 200,
+                  ),
+                  width: double.infinity,
+                  height: state is RegistrationVisibleState ? 5 : 20,
+                );
+              },
             ),
             TextFormField(
               cursorColor: const Color(0xFF8858E1),
@@ -104,8 +117,44 @@ class _LoginFormState extends State<LoginForm> {
                 return null;
               },
             ),
-            const SizedBox(
-              height: 25,
+            BlocBuilder<RegistrationBloc, RegistrationState>(
+              builder: (BuildContext context, RegistrationState state) {
+                if (state is RegistrationVisibleState) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 17.0, top: 10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Padding(
+                          padding: EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            'Encrypting\nalgorithm',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ),
+                        LiteRollingSwitch(
+                          value: true,
+                          textOn: 'SHA-512',
+                          textOff: 'HMAC',
+                          colorOn: const Color(0xFF8858E1),
+                          colorOff: const Color(0xFFAAA3F9),
+                          iconOn: FlutterIcons.enhanced_encryption_mdi,
+                          iconOff: FlutterIcons.lock_mdi,
+                          textSize: 16.0,
+                          onChanged: (bool state) {
+                            print('Current State of SWITCH IS: $state');
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return const SizedBox(
+                  height: 25,
+                );
+              },
             ),
             RaisedButton(
               color: const Color(0xFF576FA5),
@@ -120,9 +169,20 @@ class _LoginFormState extends State<LoginForm> {
                   );
                 }
               },
-              child: const Text(
-                'Submit',
-                style: TextStyle(fontSize: 20),
+              child: BlocBuilder<RegistrationBloc, RegistrationState>(
+                builder: (BuildContext context, RegistrationState state) {
+                  if (state is RegistrationVisibleState) {
+                    return const Text(
+                      'Register',
+                      style: TextStyle(fontSize: 20),
+                    );
+                  }
+
+                  return const Text(
+                    'Sign in',
+                    style: TextStyle(fontSize: 20),
+                  );
+                },
               ),
             ),
           ],

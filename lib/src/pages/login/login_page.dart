@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'login.dart';
+import 'login_widget.dart';
 
-/// A main screen of the application.
-class HomePage extends StatelessWidget {
+/// A login screen of the application.
+class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const List<Color> backgroundColors = <Color>[
@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
           colors: backgroundColors,
         )),
         child: SafeArea(
-          child: Login(),
+          child: LoginWidget(),
         ),
       ),
     );

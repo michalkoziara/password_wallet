@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'blocs/keyboard/keyboard.dart' show KeyboardBloc;
-import 'pages/home/home_page.dart';
+import 'blocs/registration/registration.dart';
+import 'pages/login/login_page.dart';
 import 'utils/constants.dart';
 
 /// A widget that defines this application.
@@ -13,7 +14,7 @@ class PasswordWalletApp extends StatelessWidget {
       child: MaterialApp(
         title: Constants.title,
         theme: ThemeData(fontFamily: 'PTSans'),
-        home: HomePage(),
+        home: LoginPage(),
       ),
     );
   }
@@ -21,7 +22,7 @@ class PasswordWalletApp extends StatelessWidget {
 
 /// A helper class that injects BLoC objects into widget tree.
 class BlocProviders extends StatelessWidget {
-  /// Creates BLoC provider.
+  /// Creates BLoC providers.
   const BlocProviders({Key key, this.child}) : super(key: key);
 
   /// A child of this widget.
@@ -34,6 +35,9 @@ class BlocProviders extends StatelessWidget {
         BlocProvider<KeyboardBloc>(
           create: _keyboardBlocBuilder,
         ),
+        BlocProvider<RegistrationBloc>(
+          create: _registrationBlocBuilder,
+        )
       ],
       child: child,
     );
@@ -41,5 +45,9 @@ class BlocProviders extends StatelessWidget {
 
   KeyboardBloc _keyboardBlocBuilder(BuildContext context) {
     return KeyboardBloc();
+  }
+
+  RegistrationBloc _registrationBlocBuilder(BuildContext context) {
+    return RegistrationBloc();
   }
 }
