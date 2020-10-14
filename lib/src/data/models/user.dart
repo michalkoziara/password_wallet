@@ -1,16 +1,16 @@
 /// A class representing a user.
 class User {
   /// Creates user.
-  User({this.id, this.login, this.passwordHash, this.salt, this.isPasswordKeptAsHash});
+  User({this.id, this.username, this.passwordHash, this.salt, this.isPasswordKeptAsHash});
 
   /// Creates user from map.
   factory User.fromMap(Map<String, dynamic> data) {
     return User(
       id: data['id'] as int,
-      login: data['login'] as String,
+      username: data['username'] as String,
       passwordHash: data['passwordHash'] as String,
       salt: data['salt'] as String,
-      isPasswordKeptAsHash: data['isPasswordKeptAsHash'] as bool,
+      isPasswordKeptAsHash: data['isPasswordKeptAsHash'] == 'true',
     );
   }
 
@@ -18,18 +18,18 @@ class User {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'login': login,
+      'username': username,
       'passwordHash': passwordHash,
       'salt': salt,
-      'isPasswordKeptAsHash': isPasswordKeptAsHash
+      'isPasswordKeptAsHash': isPasswordKeptAsHash.toString()
     };
   }
 
   /// The index of this user.
   int id;
 
-  /// The login of this user.
-  String login;
+  /// The name of this user.
+  String username;
 
   /// The hash of this user's password.
   String passwordHash;

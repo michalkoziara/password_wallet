@@ -4,17 +4,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/keyboard/keyboard.dart' show KeyboardBloc;
 import 'blocs/registration/registration.dart';
 import 'pages/login/login_page.dart';
+import 'repositories/user_repository.dart';
+import 'services/services.dart';
 import 'utils/constants.dart';
 
 /// A widget that defines this application.
 class PasswordWalletApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProviders(
-      child: MaterialApp(
-        title: Constants.title,
-        theme: ThemeData(fontFamily: 'PTSans'),
-        home: LoginPage(),
+    return RepositoryProviders(
+      child: ServiceProviders(
+        child: BlocProviders(
+          child: MaterialApp(
+            title: Constants.title,
+            theme: ThemeData(fontFamily: 'PTSans'),
+            home: LoginPage(),
+          ),
+        ),
       ),
     );
   }
@@ -48,6 +54,44 @@ class BlocProviders extends StatelessWidget {
   }
 
   RegistrationBloc _registrationBlocBuilder(BuildContext context) {
-    return RegistrationBloc();
+    return RegistrationBloc(RepositoryProvider.of<UserService>(context));
+  }
+}
+
+/// A helper class that injects repositories into widget tree.
+class RepositoryProviders extends StatelessWidget {
+  /// Creates repository providers.
+  const RepositoryProviders({Key key, @required this.child}) : super(key: key);
+
+  /// A child of this widget.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepositoryProvider<UserRepository>(
+        create: _userRepositoryBuilder, child: child);
+  }
+
+  UserRepository _userRepositoryBuilder(BuildContext context) {
+    return UserRepository();
+  }
+}
+
+/// A helper class that injects services into widget tree.
+class ServiceProviders extends StatelessWidget {
+  /// Creates service providers.
+  const ServiceProviders({Key key, @required this.child}) : super(key: key);
+
+  /// A child of this widget.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepositoryProvider<UserService>(
+        create: _userServiceBuilder, child: child);
+  }
+
+  UserService _userServiceBuilder(BuildContext context) {
+    return UserService(RepositoryProvider.of<UserRepository>(context));
   }
 }

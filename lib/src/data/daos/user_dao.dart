@@ -1,5 +1,6 @@
 import 'package:sqflite_common/sqlite_api.dart';
 
+import '../../utils/constants.dart';
 import '../data_sources/database_provider.dart';
 import '../models/models.dart' show User;
 
@@ -8,34 +9,44 @@ class UserDao {
   /// The database provider.
   final DatabaseProvider _databaseProvider = DatabaseProvider.databaseProvider;
 
-  /// Returns users based on query.
-  Future<List<User>> getUsers({List<String> columns, String query}) async {
+  /// Returns user based on username.
+  Future<User> getUserByUsername(
+      {List<String> columns, String username}) async {
     final Database database = await _databaseProvider.database;
 
     List<Map<String, dynamic>> result;
-    if (query != null && query != '') {
-      if (query.isNotEmpty) {
-        result =
-            await database.query(userTable, columns: columns, where: 'name LIKE ?', whereArgs: <String>['%$query%']);
+    if (username != null && username != '') {
+      if (username.isNotEmpty) {
+        result = await database.query(Constants.userTable,
+            columns: columns,
+            where: 'username = ?',
+            whereArgs: <String>[username]);
       }
     } else {
-      result = await database.query(userTable, columns: columns);
+      result = await database.query(Constants.userTable, columns: columns);
     }
 
-    final List<User> users =
-        result.isNotEmpty ? result.map((Map<String, dynamic> user) => User.fromMap(user)).toList() : <User>[];
-    return users;
+    final List<User> users = result.isNotEmpty
+        ? result.map((Map<String, dynamic> user) => User.fromMap(user)).toList()
+        : <User>[];
+    final User user = users.isNotEmpty ? users[0] : null;
+
+    return user;
   }
 
   /// Returns user based on id.
-  Future<User> getUser({List<String> columns, int id}) async {
+  Future<User> getUserById({List<String> columns, int id}) async {
     final Database database = await _databaseProvider.database;
 
-    final List<Map<String, dynamic>> result =
-        await database.query(userTable, columns: columns, where: 'id = ?', whereArgs: <int>[id]);
+    final List<Map<String, dynamic>> result = await database.query(
+        Constants.userTable,
+        columns: columns,
+        where: 'id = ?',
+        whereArgs: <int>[id]);
 
-    final List<User> users =
-        result.isNotEmpty ? result.map((Map<String, dynamic> user) => User.fromMap(user)).toList() : <User>[];
+    final List<User> users = result.isNotEmpty
+        ? result.map((Map<String, dynamic> user) => User.fromMap(user)).toList()
+        : <User>[];
     final User user = users.isNotEmpty ? users[0] : null;
 
     return user;
@@ -45,7 +56,7 @@ class UserDao {
   Future<int> createUser(User user) async {
     final Database database = await _databaseProvider.database;
 
-    final int result = await database.insert(userTable, user.toMap());
+    final int result = await database.insert(Constants.userTable, user.toMap());
 
     return result;
   }
@@ -54,7 +65,8 @@ class UserDao {
   Future<int> updateUser(User user) async {
     final Database database = await _databaseProvider.database;
 
-    final int result = await database.update(userTable, user.toMap(), where: 'id = ?', whereArgs: <int>[user.id]);
+    final int result = await database.update(Constants.userTable, user.toMap(),
+        where: 'id = ?', whereArgs: <int>[user.id]);
 
     return result;
   }
@@ -63,7 +75,8 @@ class UserDao {
   Future<int> deleteUser(int id) async {
     final Database database = await _databaseProvider.database;
 
-    final int result = await database.delete(userTable, where: 'id = ?', whereArgs: <int>[id]);
+    final int result = await database
+        .delete(Constants.userTable, where: 'id = ?', whereArgs: <int>[id]);
 
     return result;
   }

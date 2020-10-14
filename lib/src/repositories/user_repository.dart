@@ -6,11 +6,11 @@ class UserRepository {
   /// The user data access object.
   final UserDao _userDao = UserDao();
 
-  /// Gets users based on query.
-  Future<List<User>> getUsers({String query}) => _userDao.getUsers(query: query);
+  /// Gets user with given username.
+  Future<User> getUserByUsername(String username) => _userDao.getUserByUsername(username: username);
 
-  /// Gets users with given ID.
-  Future<User> getUser(int id) => _userDao.getUser(id: id);
+  /// Gets user with given ID.
+  Future<User> getUserById(int id) => _userDao.getUserById(id: id);
 
   /// Creates user.
   Future<int> createUser(User user) => _userDao.createUser(user);

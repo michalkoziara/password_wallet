@@ -5,8 +5,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
-/// The name of user table.
-const String userTable = 'userTable';
+import '../../utils/constants.dart';
 
 /// A database provider.
 class DatabaseProvider {
@@ -26,8 +25,9 @@ class DatabaseProvider {
 
   /// Creates database.
   Future<Database> createDatabase() async {
-    final Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    final String path = join(documentsDirectory.path, 'user.db');
+    final Directory documentsDirectory =
+        await getApplicationDocumentsDirectory();
+    final String path = join(documentsDirectory.path, 'database.db');
 
     final Database database = await openDatabase(
       path,
@@ -49,10 +49,14 @@ class DatabaseProvider {
 
   /// Initialises database structure.
   Future<void> initializeDatabase(Database database, int version) async {
+    final String userTable = Constants.userTable;
+
     await database.execute('CREATE TABLE $userTable ('
         'id INTEGER PRIMARY KEY, '
         'username TEXT, '
-        'token TEXT '
+        'passwordHash TEXT, '
+        'salt TEXT, '
+        'isPasswordKeptAsHash INTEGER '
         ')');
   }
 }

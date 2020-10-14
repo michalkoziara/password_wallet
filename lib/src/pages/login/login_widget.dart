@@ -100,7 +100,7 @@ class LoginWidget extends StatelessWidget {
         ),
         BlocBuilder<RegistrationBloc, RegistrationState>(
           builder: (BuildContext context, RegistrationState state) {
-            if (state is RegistrationInvisibleState) {
+            if (state is RegistrationInvisibleState || state is LoginErrorState) {
               return RegistrationButton();
             }
 
