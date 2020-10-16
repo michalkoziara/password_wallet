@@ -4,7 +4,9 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 
 import '../../blocs/registration/registration.dart';
-import '../wallet_page.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_form_field.dart';
+import '../wallet/wallet_page.dart';
 
 /// A form that allows user to sign in.
 class LoginForm extends StatefulWidget {
@@ -41,9 +43,10 @@ class _LoginFormState extends State<LoginForm> {
         },
         child: Column(
           children: <Widget>[
-            LoginFormField(
+            CustomFormField(
               controller: _usernameController,
               hintText: 'Username',
+              inputType: TextInputType.text,
               iconData: FlutterIcons.user_ant,
               validationErrorMessage: 'Please enter username',
             ),
@@ -59,9 +62,10 @@ class _LoginFormState extends State<LoginForm> {
                 );
               },
             ),
-            LoginFormField(
+            CustomFormField(
               controller: _passwordController,
               hintText: 'Password',
+              inputType: TextInputType.visiblePassword,
               iconData: FlutterIcons.lock1_ant,
               validationErrorMessage: 'Please enter password',
             ),
@@ -128,7 +132,7 @@ class _LoginFormState extends State<LoginForm> {
               },
               builder: (BuildContext context, RegistrationState state) {
                 if (state is RegistrationInvisibleState || state is LoginErrorState) {
-                  return LoginFormButton(
+                  return CustomButton(
                     submitWhenPressed: () {
                       if (_formKey.currentState.validate()) {
                         BlocProvider.of<RegistrationBloc>(context).add(
@@ -143,7 +147,7 @@ class _LoginFormState extends State<LoginForm> {
                   );
                 }
 
-                return LoginFormButton(
+                return CustomButton(
                   submitWhenPressed: () {
                     if (_formKey.currentState.validate()) {
                       BlocProvider.of<RegistrationBloc>(context).add(
@@ -164,96 +168,6 @@ class _LoginFormState extends State<LoginForm> {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// A button used in the login form.
-class LoginFormButton extends StatelessWidget {
-  /// Creates a login form button.
-  const LoginFormButton({@required this.submitWhenPressed, @required this.child});
-
-  /// The callback method run when this button is pressed.
-  final VoidCallback submitWhenPressed;
-
-  /// The child of this button.
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return RaisedButton(
-      color: const Color(0xFF576FA5),
-      textColor: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-      onPressed: submitWhenPressed,
-      child: child,
-    );
-  }
-}
-
-/// A form field used in the login form.
-class LoginFormField extends StatelessWidget {
-  /// Creates a login form field.
-  const LoginFormField({
-    @required this.controller,
-    @required this.hintText,
-    @required this.validationErrorMessage,
-    @required this.iconData,
-  });
-
-  /// A controller for an editable text field.
-  final TextEditingController controller;
-
-  /// A text that suggests what sort of input the field accepts.
-  final String hintText;
-
-  /// The message that is displayed after a validation error.
-  final String validationErrorMessage;
-
-  /// A data of icon that appears before the editable part of the text field.
-  final IconData iconData;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      cursorColor: const Color(0xFF8858E1),
-      decoration: InputDecoration(
-        helperText: ' ',
-        helperStyle: const TextStyle(height: 1),
-        errorStyle: const TextStyle(height: 1, color: Colors.white),
-        filled: true,
-        fillColor: Colors.white,
-        hintText: hintText,
-        prefixIcon: Icon(
-          iconData,
-          color: const Color(0xFF8858E1),
-        ),
-        focusColor: const Color(0xFF8858E1),
-        contentPadding: const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(30),
-        ),
-      ),
-      validator: (String value) {
-        if (value.isEmpty) {
-          return validationErrorMessage;
-        }
-        return null;
-      },
     );
   }
 }
