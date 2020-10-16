@@ -1,0 +1,7 @@
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/security_lock.png"
+  adaptive_icon_foreground: "assets/images/security_lock.png"
+  adaptive_icon_background: "#FF949BE9"
+  adaptive_icon_foreground_scale_factor: 0.50
