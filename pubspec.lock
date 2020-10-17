@@ -81,9 +81,11 @@ packages:
   convex_bottom_bar:
     dependency: "direct main"
     description:
-      name: convex_bottom_bar
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: patch-highlight
+      resolved-ref: d1e9a45310ea59c768bf0d766bbe9cbdfca9cff3
+      url: "https://github.com/hacktons/convex_bottom_bar.git"
+    source: git
     version: "2.5.1+1"
   crypto:
     dependency: "direct main"

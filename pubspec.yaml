@@ -47,7 +47,10 @@ dependencies:
   # Functional programming in Dart.
   dartz: ^0.9.2
   # Convex app bar.
-  convex_bottom_bar: ^2.5.1+1
+  convex_bottom_bar:
+    git:
+      url: https://github.com/hacktons/convex_bottom_bar.git
+      ref: patch-highlight
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
