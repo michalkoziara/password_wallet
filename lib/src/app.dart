@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
-import 'blocs/keyboard/keyboard.dart' show KeyboardBloc;
 import 'blocs/registration/registration.dart';
 import 'pages/login/login_page.dart';
 import 'repositories/user_repository.dart';
@@ -15,10 +15,14 @@ class PasswordWalletApp extends StatelessWidget {
     return RepositoryProviders(
       child: ServiceProviders(
         child: BlocProviders(
-          child: MaterialApp(
-            title: Constants.title,
-            theme: ThemeData(fontFamily: 'PTSans'),
-            home: LoginPage(),
+          child: KeyboardVisibilityProvider(
+            child: KeyboardDismissOnTap(
+              child: MaterialApp(
+                title: Constants.title,
+                theme: ThemeData(fontFamily: 'PTSans'),
+                home: LoginPage(),
+              ),
+            ),
           ),
         ),
       ),
@@ -38,19 +42,12 @@ class BlocProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <BlocProvider<dynamic>>[
-        BlocProvider<KeyboardBloc>(
-          create: _keyboardBlocBuilder,
-        ),
         BlocProvider<RegistrationBloc>(
           create: _registrationBlocBuilder,
         )
       ],
       child: child,
     );
-  }
-
-  KeyboardBloc _keyboardBlocBuilder(BuildContext context) {
-    return KeyboardBloc();
   }
 
   RegistrationBloc _registrationBlocBuilder(BuildContext context) {
@@ -68,8 +65,7 @@ class RepositoryProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<UserRepository>(
-        create: _userRepositoryBuilder, child: child);
+    return RepositoryProvider<UserRepository>(create: _userRepositoryBuilder, child: child);
   }
 
   UserRepository _userRepositoryBuilder(BuildContext context) {
@@ -87,8 +83,7 @@ class ServiceProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<UserService>(
-        create: _userServiceBuilder, child: child);
+    return RepositoryProvider<UserService>(create: _userServiceBuilder, child: child);
   }
 
   UserService _userServiceBuilder(BuildContext context) {

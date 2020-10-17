@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../blocs/keyboard/keyboard.dart';
 import '../../blocs/registration/registration.dart';
 import 'login_form.dart';
 
@@ -12,75 +11,63 @@ import 'login_form.dart';
 class LoginWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    KeyboardVisibility.onChange.listen(
-      (bool visible) {
-        if (visible) {
-          BlocProvider.of<KeyboardBloc>(context).add(ShowKeyboard());
-        } else {
-          BlocProvider.of<KeyboardBloc>(context).add(HideKeyboard());
-        }
-      },
-    );
+    final bool isKeyboardVisible = KeyboardVisibilityProvider.isKeyboardVisible(context) ?? false;
 
     return Column(
       children: <Widget>[
-        BlocBuilder<KeyboardBloc, KeyboardState>(
-          builder: (BuildContext context, KeyboardState state) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                AnimatedContainer(
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            AnimatedContainer(
+              curve: Curves.easeOut,
+              duration: const Duration(
+                milliseconds: 200,
+              ),
+              width: double.infinity,
+              height: isKeyboardVisible ? 10 : 50,
+            ),
+            AnimatedContainer(
+              curve: Curves.easeOut,
+              duration: const Duration(
+                milliseconds: 200,
+              ),
+              width: double.infinity,
+              height: isKeyboardVisible ? 80 : 200,
+              child: SvgPicture.asset(
+                'assets/images/security_lock.svg',
+                fit: BoxFit.scaleDown,
+              ),
+            ),
+            BlocBuilder<RegistrationBloc, RegistrationState>(
+              builder: (BuildContext context, RegistrationState registrationState) {
+                double spacerHeight = isKeyboardVisible ? 10 : 30;
+
+                if (isKeyboardVisible && registrationState is RegistrationVisibleState) {
+                  spacerHeight = 5;
+                } else if (registrationState is RegistrationVisibleState) {
+                  spacerHeight = 10;
+                }
+
+                return AnimatedContainer(
                   curve: Curves.easeOut,
                   duration: const Duration(
                     milliseconds: 200,
                   ),
                   width: double.infinity,
-                  height: state is KeyboardVisibleState ? 10 : 50,
-                ),
-                AnimatedContainer(
-                  curve: Curves.easeOut,
-                  duration: const Duration(
-                    milliseconds: 200,
-                  ),
-                  width: double.infinity,
-                  height: state is KeyboardVisibleState ? 80 : 200,
-                  child: SvgPicture.asset(
-                    'assets/images/security_lock.svg',
-                    fit: BoxFit.scaleDown,
-                  ),
-                ),
-                BlocBuilder<RegistrationBloc, RegistrationState>(
-                  builder: (BuildContext context, RegistrationState registrationState) {
-                    double spacerHeight = state is KeyboardVisibleState ? 10 : 30;
-
-                    if (state is KeyboardVisibleState && registrationState is RegistrationVisibleState) {
-                      spacerHeight = 5;
-                    } else if (registrationState is RegistrationVisibleState) {
-                      spacerHeight = 10;
-                    }
-
-                    return AnimatedContainer(
-                      curve: Curves.easeOut,
-                      duration: const Duration(
-                        milliseconds: 200,
-                      ),
-                      width: double.infinity,
-                      height: spacerHeight,
-                    );
-                  },
-                ),
-                AnimatedDefaultTextStyle(
-                  child: const Text('Password Wallet'),
-                  duration: const Duration(
-                    milliseconds: 200,
-                  ),
-                  style: state is KeyboardVisibleState
-                      ? const TextStyle(color: Colors.white, fontSize: 16)
-                      : const TextStyle(color: Colors.white, fontSize: 30),
-                ),
-              ],
-            );
-          },
+                  height: spacerHeight,
+                );
+              },
+            ),
+            AnimatedDefaultTextStyle(
+              child: const Text('Password Wallet'),
+              duration: const Duration(
+                milliseconds: 200,
+              ),
+              style: isKeyboardVisible
+                  ? const TextStyle(color: Colors.white, fontSize: 16)
+                  : const TextStyle(color: Colors.white, fontSize: 30),
+            ),
+          ],
         ),
         BlocBuilder<RegistrationBloc, RegistrationState>(
           builder: (BuildContext context, RegistrationState state) {
