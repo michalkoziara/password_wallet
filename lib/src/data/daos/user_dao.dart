@@ -34,24 +34,6 @@ class UserDao {
     return user;
   }
 
-  /// Returns user based on id.
-  Future<User> getUserById({List<String> columns, int id}) async {
-    final Database database = await _databaseProvider.database;
-
-    final List<Map<String, dynamic>> result = await database.query(
-        Constants.userTable,
-        columns: columns,
-        where: 'id = ?',
-        whereArgs: <int>[id]);
-
-    final List<User> users = result.isNotEmpty
-        ? result.map((Map<String, dynamic> user) => User.fromMap(user)).toList()
-        : <User>[];
-    final User user = users.isNotEmpty ? users[0] : null;
-
-    return user;
-  }
-
   /// Creates user.
   Future<int> createUser(User user) async {
     final Database database = await _databaseProvider.database;
@@ -67,16 +49,6 @@ class UserDao {
 
     final int result = await database.update(Constants.userTable, user.toMap(),
         where: 'id = ?', whereArgs: <int>[user.id]);
-
-    return result;
-  }
-
-  /// Deletes user.
-  Future<int> deleteUser(int id) async {
-    final Database database = await _databaseProvider.database;
-
-    final int result = await database
-        .delete(Constants.userTable, where: 'id = ?', whereArgs: <int>[id]);
 
     return result;
   }

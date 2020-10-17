@@ -40,13 +40,15 @@ dependencies:
   path_provider: ^1.6.18
   # Customizable rolling switch.
   lite_rolling_switch: ^0.1.1
-  # Encrypting algorithms support.
+  # Hash algorithms support.
   crypto: ^2.1.5
+  # Encrypting algorithms support.
+  pointycastle: ^2.0.0
   # Random string generator.
   random_string: ^2.1.0
   # Functional programming in Dart.
   dartz: ^0.9.2
-  # Convex app bar.
+  # Convex application bar.
   convex_bottom_bar:
     git:
       url: https://github.com/hacktons/convex_bottom_bar.git

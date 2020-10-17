@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
-import 'blocs/registration/registration.dart';
+import 'blocs/blocs.dart' show RegistrationBloc;
+import 'blocs/password_form/password_form.dart';
 import 'pages/login/login_page.dart';
-import 'repositories/user_repository.dart';
+import 'repositories/repositories.dart';
 import 'services/services.dart';
 import 'utils/constants.dart';
+import 'utils/random_values_generator.dart';
 
 /// A widget that defines this application.
 class PasswordWalletApp extends StatelessWidget {
@@ -44,6 +46,9 @@ class BlocProviders extends StatelessWidget {
       providers: <BlocProvider<dynamic>>[
         BlocProvider<RegistrationBloc>(
           create: _registrationBlocBuilder,
+        ),
+        BlocProvider<PasswordFormBloc>(
+          create: _passwordFormBlocBuilder,
         )
       ],
       child: child,
@@ -52,6 +57,10 @@ class BlocProviders extends StatelessWidget {
 
   RegistrationBloc _registrationBlocBuilder(BuildContext context) {
     return RegistrationBloc(RepositoryProvider.of<UserService>(context));
+  }
+
+  PasswordFormBloc _passwordFormBlocBuilder(BuildContext context) {
+    return PasswordFormBloc(RepositoryProvider.of<PasswordService>(context));
   }
 }
 
@@ -65,11 +74,21 @@ class RepositoryProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<UserRepository>(create: _userRepositoryBuilder, child: child);
+    return RepositoryProvider<UserRepository>(
+      create: _userRepositoryBuilder,
+      child: RepositoryProvider<PasswordRepository>(
+        create: _passwordRepositoryBuilder,
+        child: child,
+      ),
+    );
   }
 
   UserRepository _userRepositoryBuilder(BuildContext context) {
     return UserRepository();
+  }
+
+  PasswordRepository _passwordRepositoryBuilder(BuildContext context) {
+    return PasswordRepository();
   }
 }
 
@@ -83,10 +102,28 @@ class ServiceProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<UserService>(create: _userServiceBuilder, child: child);
+    return RepositoryProvider<UserService>(
+      create: _userServiceBuilder,
+      child: RepositoryProvider<PasswordService>(
+        create: _passwordServiceBuilder,
+        child: child,
+      ),
+    );
   }
 
   UserService _userServiceBuilder(BuildContext context) {
-    return UserService(RepositoryProvider.of<UserRepository>(context));
+    return UserService(
+      RepositoryProvider.of<UserRepository>(context),
+      RepositoryProvider.of<PasswordRepository>(context),
+      RandomValuesGenerator(),
+    );
+  }
+
+  PasswordService _passwordServiceBuilder(BuildContext context) {
+    return PasswordService(
+      RepositoryProvider.of<PasswordRepository>(context),
+      RepositoryProvider.of<UserRepository>(context),
+      RandomValuesGenerator(),
+    );
   }
 }

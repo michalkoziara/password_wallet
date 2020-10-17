@@ -25,8 +25,7 @@ class DatabaseProvider {
 
   /// Creates database.
   Future<Database> createDatabase() async {
-    final Directory documentsDirectory =
-        await getApplicationDocumentsDirectory();
+    final Directory documentsDirectory = await getApplicationDocumentsDirectory();
     final String path = join(documentsDirectory.path, 'database.db');
 
     final Database database = await openDatabase(
@@ -50,13 +49,31 @@ class DatabaseProvider {
   /// Initialises database structure.
   Future<void> initializeDatabase(Database database, int version) async {
     final String userTable = Constants.userTable;
+    final String passwordTable = Constants.passwordTable;
 
-    await database.execute('CREATE TABLE $userTable ('
-        'id INTEGER PRIMARY KEY, '
-        'username TEXT, '
-        'passwordHash TEXT, '
-        'salt TEXT, '
-        'isPasswordKeptAsHash INTEGER '
-        ')');
+    await database
+        .execute(
+          'CREATE TABLE $userTable ('
+          'id INTEGER PRIMARY KEY, '
+          'username TEXT, '
+          'passwordHash TEXT, '
+          'salt TEXT, '
+          'isPasswordKeptAsHash INTEGER '
+          ')',
+        )
+        .then(
+          (_) async => await database.execute(
+            'CREATE TABLE $passwordTable ('
+            'id INTEGER PRIMARY KEY, '
+            'userId INTEGER, '
+            'password TEXT, '
+            'vector TEXT, '
+            'webAddress TEXT, '
+            'description TEXT, '
+            'login TEXT '
+            'FOREIGN KEY (userId) REFERENCES user (id)'
+            ')',
+          ),
+        );
   }
 }

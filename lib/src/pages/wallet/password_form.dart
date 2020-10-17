@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
+import '../../blocs/password_form/password_form.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_form_field.dart';
 
 /// A form allowing user to add new password to the wallet.
 class PasswordForm extends StatefulWidget {
+  /// Creates the password form.
+  const PasswordForm({@required this.username, @required this.password});
+
+  /// The username of user that is signed in.
+  final String username;
+
+  /// The password of user that is signed in.
+  final String password;
+
   @override
   _PasswordFormState createState() => _PasswordFormState();
 }
@@ -86,7 +97,18 @@ class _PasswordFormState extends State<PasswordForm> {
                   ),
                   CustomButton(
                     submitWhenPressed: () {
-                      if (_formKey.currentState.validate()) {}
+                      if (_formKey.currentState.validate()) {
+                        BlocProvider.of<PasswordFormBloc>(context).add(
+                          PasswordFormEvent(
+                            username: widget.username,
+                            userPassword: widget.password,
+                            login: _loginController?.text,
+                            password: _passwordController?.text,
+                            webAddress: _addressController?.text,
+                            description: _descriptionController?.text,
+                          ),
+                        );
+                      }
                     },
                     child: const Text(
                       'Add password',

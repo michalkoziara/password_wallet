@@ -80,8 +80,8 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     switch (failure.runtimeType) {
       case UserCreationFailure:
         return ErrorMessages.userCreationFailureMessage;
-      case ExistingUserFailure:
-        return ErrorMessages.existingUserFailureMessage;
+      case AlreadyExistingUserFailure:
+        return ErrorMessages.alreadyExistingUserFailureMessage;
       case NonExistentUserFailure:
         return ErrorMessages.nonExistentUserFailureMessage;
       case UserSigningFailure:

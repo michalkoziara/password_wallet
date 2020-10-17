@@ -116,6 +116,7 @@ class _LoginFormState extends State<LoginForm> {
                     MaterialPageRoute<WalletPage>(
                       builder: (BuildContext context) => WalletPage(
                         username: _usernameController?.text,
+                        password: _passwordController?.text,
                       ),
                       maintainState: false,
                     ),
