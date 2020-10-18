@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:pointycastle/export.dart';
@@ -42,10 +43,13 @@ class PasswordService {
       CBCBlockCipher(AESFastEngine()),
     );
 
+    final crypto.Digest secretKeyDigest = crypto.md5.convert(secretKeyBytes);
+    final Uint8List secretKeyDigestBytes = Uint8List.fromList(secretKeyDigest.bytes);
+
     aesCipher.init(
       true,
       PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
-        ParametersWithIV<KeyParameter>(KeyParameter(secretKeyBytes), initializationVectorBytes),
+        ParametersWithIV<KeyParameter>(KeyParameter(secretKeyDigestBytes), initializationVectorBytes),
         null,
       ),
     );
@@ -96,6 +100,9 @@ class PasswordService {
     final Uint8List secretKeyBytes = Uint8List.fromList(utf8.encode(userPassword));
     final Uint8List initializationVectorBytes = Uint8List.fromList(base64.decode(password.vector));
 
+    final crypto.Digest secretKeyDigest = crypto.md5.convert(secretKeyBytes);
+    final Uint8List secretKeyDigestBytes = Uint8List.fromList(secretKeyDigest.bytes);
+
     final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
       PKCS7Padding(),
       CBCBlockCipher(AESFastEngine()),
@@ -104,7 +111,7 @@ class PasswordService {
     aesCipher.init(
       true,
       PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
-        ParametersWithIV<KeyParameter>(KeyParameter(secretKeyBytes), initializationVectorBytes),
+        ParametersWithIV<KeyParameter>(KeyParameter(secretKeyDigestBytes), initializationVectorBytes),
         null,
       ),
     );

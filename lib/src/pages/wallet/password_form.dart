@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
 import '../../blocs/password_form/password_form.dart';
+import '../../blocs/password_list/password_list.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_form_field.dart';
 
@@ -62,7 +63,7 @@ class _PasswordFormState extends State<PasswordForm> {
                       hintText: 'Login',
                       inputType: TextInputType.text,
                       iconData: FlutterIcons.user_ant,
-                      validationErrorMessage: 'Please enter username',
+                      validationErrorMessage: 'Please enter login',
                     ),
                   ),
                   Padding(
@@ -106,6 +107,12 @@ class _PasswordFormState extends State<PasswordForm> {
                             password: _passwordController?.text,
                             webAddress: _addressController?.text,
                             description: _descriptionController?.text,
+                          ),
+                        );
+
+                        BlocProvider.of<PasswordListBloc>(context).add(
+                          PasswordListOpenEvent(
+                            username: widget.username,
                           ),
                         );
                       }

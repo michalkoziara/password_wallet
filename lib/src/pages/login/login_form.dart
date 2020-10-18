@@ -127,6 +127,7 @@ class _LoginFormState extends State<LoginForm> {
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
                       content: Text((state as ErrorState).message),
+                      behavior: SnackBarBehavior.floating,
                     ),
                   );
                 }

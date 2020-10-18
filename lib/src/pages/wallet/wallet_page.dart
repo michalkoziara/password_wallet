@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
 import '../../blocs/password_form/password_form.dart';
+import '../../blocs/password_list/password_list.dart';
 import 'password_form.dart';
 import 'passwords_list.dart';
 import 'profile_form.dart';
@@ -43,39 +44,56 @@ class _WalletPageState extends State<WalletPage> {
           activeIndex = i;
         }),
       ),
-      body: BlocListener<PasswordFormBloc, PasswordFormState>(
-        listener: (BuildContext context, PasswordFormState state) {
-          if (state is PasswordFormCompletedState) {
-            Scaffold.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Success'),
-              ),
-            );
-          }
-
-          if (state is PasswordFormIncorrectState) {
-            Scaffold.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-              ),
-            );
-          }
-        },
-        child: SafeArea(
-          child: Column(
-            children: <Widget>[
-              Container(
-                height: 60,
-                child: Center(
-                  child: Text(
-                    'Welcome ${widget.username}!',
-                    style: const TextStyle(fontSize: 30, color: Color(0xFFE1DFF8)),
-                  ),
+      body: SafeArea(
+        child: Column(
+          children: <Widget>[
+            Container(
+              height: 60,
+              child: Center(
+                child: Text(
+                  'Welcome ${widget.username}!',
+                  style: const TextStyle(fontSize: 30, color: Color(0xFFE1DFF8)),
                 ),
               ),
-              Expanded(child: _createContent()),
-            ],
-          ),
+            ),
+            Expanded(
+              child: BlocListener<PasswordFormBloc, PasswordFormState>(
+                listener: (BuildContext context, PasswordFormState state) {
+                  if (state is PasswordFormCompletedState) {
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        margin: const EdgeInsets.only(bottom: 32, left: 30, right: 30),
+                        content: const Text('Created'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+
+                  if (state is PasswordFormIncorrectState) {
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                child: BlocListener<PasswordListBloc, PasswordListState>(
+                  listener: (BuildContext context, PasswordListState state) {
+                    if (state is PasswordListErrorState) {
+                      Scaffold.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  child: _createContent(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -87,7 +105,7 @@ class _WalletPageState extends State<WalletPage> {
         return PasswordForm(username: widget.username, password: widget.password);
 
       case 1:
-        return PasswordsList();
+        return PasswordsList(username: widget.username, password: widget.password);
 
       case 2:
         return ProfileForm();

@@ -70,7 +70,7 @@ class DatabaseProvider {
             'vector TEXT, '
             'webAddress TEXT, '
             'description TEXT, '
-            'login TEXT '
+            'login TEXT, '
             'FOREIGN KEY (userId) REFERENCES user (id)'
             ')',
           ),
