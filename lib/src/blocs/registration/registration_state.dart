@@ -1,12 +1,8 @@
-import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 /// A class representing a registration state.
 @immutable
-abstract class RegistrationState extends Equatable {
-  @override
-  List<Object> get props => <Object>[];
-}
+abstract class RegistrationState {}
 
 /// A class representing a registration visibility state.
 class RegistrationVisibleState extends RegistrationState {}
@@ -27,9 +23,6 @@ class ErrorState extends RegistrationState {
 
   /// The error message.
   final String message;
-
-  @override
-  List<Object> get props => <Object>[message];
 }
 
 /// A class representing a registration error state.
