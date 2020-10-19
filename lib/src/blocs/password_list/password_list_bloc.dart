@@ -70,7 +70,7 @@ class PasswordListBloc extends Bloc<PasswordListEvent, PasswordListState> {
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case NonExistentUserFailure:
-        return ErrorMessages.incorrectUserPasswordCreationFailure;
+        return ErrorMessages.incorrectUserPasswordCreationFailureMessage;
       default:
         return 'Unexpected error';
     }

@@ -46,9 +46,9 @@ class PasswordFormBloc extends Bloc<PasswordFormEvent, PasswordFormState> {
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case PasswordCreationFailure:
-        return ErrorMessages.passwordCreationFailure;
+        return ErrorMessages.passwordCreationFailureMessage;
       case NonExistentUserFailure:
-        return ErrorMessages.incorrectUserPasswordCreationFailure;
+        return ErrorMessages.incorrectUserPasswordCreationFailureMessage;
       default:
         return 'Unexpected error';
     }

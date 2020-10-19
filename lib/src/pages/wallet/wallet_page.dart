@@ -2,6 +2,7 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:password_wallet/src/blocs/profile_form/profile_form.dart';
 
 import '../../blocs/password_form/password_form.dart';
 import '../../blocs/password_list/password_list.dart';
@@ -26,6 +27,14 @@ class WalletPage extends StatefulWidget {
 
 class _WalletPageState extends State<WalletPage> {
   int activeIndex = 1;
+  String password;
+
+  @override
+  void initState() {
+    super.initState();
+
+    password = widget.password;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +98,31 @@ class _WalletPageState extends State<WalletPage> {
                       );
                     }
                   },
-                  child: _createContent(),
+                  child: BlocListener<ProfileFormBloc, ProfileFormState>(
+                    listener: (BuildContext context, ProfileFormState state) {
+                      if (state is ProfileFormCompletedState) {
+                        Scaffold.of(context).showSnackBar(
+                          SnackBar(
+                            margin: const EdgeInsets.only(bottom: 32, left: 30, right: 30),
+                            content: const Text('Changed'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+
+                        password = state.password;
+                      }
+
+                      if (state is ProfileFormIncorrectState) {
+                        Scaffold.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(state.message),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                    child: _createContent(),
+                  ),
                 ),
               ),
             ),
@@ -102,13 +135,22 @@ class _WalletPageState extends State<WalletPage> {
   Widget _createContent() {
     switch (activeIndex) {
       case 0:
-        return PasswordForm(username: widget.username, password: widget.password);
+        return PasswordForm(
+          username: widget.username,
+          password: password,
+        );
 
       case 1:
-        return PasswordsList(username: widget.username, password: widget.password);
+        return PasswordsList(
+          username: widget.username,
+          password: password,
+        );
 
       case 2:
-        return ProfileForm();
+        return ProfileForm(
+          username: widget.username,
+          password: password,
+        );
 
       default:
         return Container();

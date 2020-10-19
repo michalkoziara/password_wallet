@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
+import '../../blocs/profile_form/profile_form.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_form_field.dart';
 
 /// A form allowing user to change main password.
 class ProfileForm extends StatefulWidget {
+  /// Creates the profile form.
+  const ProfileForm({@required this.username, @required this.password});
+
+  /// The username of user that is signed in.
+  final String username;
+
+  /// The password of user that is signed in.
+  final String password;
+
   @override
   _ProfileFormState createState() => _ProfileFormState();
 }
@@ -50,7 +61,15 @@ class _ProfileFormState extends State<ProfileForm> {
                   ),
                   CustomButton(
                     submitWhenPressed: () {
-                      if (_formKey.currentState.validate()) {}
+                      if (_formKey.currentState.validate()) {
+                        BlocProvider.of<ProfileFormBloc>(context).add(
+                          ProfileFormEvent(
+                            username: widget.username,
+                            newPassword: _passwordController?.text,
+                            oldPassword: widget.password,
+                          ),
+                        );
+                      }
                     },
                     child: const Text(
                       'Change password',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:password_wallet/src/blocs/profile_form/profile_form.dart';
 
 import 'blocs/blocs.dart' show RegistrationBloc;
 import 'blocs/password_form/password_form.dart';
@@ -53,7 +54,10 @@ class BlocProviders extends StatelessWidget {
         ),
         BlocProvider<PasswordListBloc>(
           create: _passwordListBlocBuilder,
-        )
+        ),
+        BlocProvider<ProfileFormBloc>(
+          create: _profileFormBlocBuilder,
+        ),
       ],
       child: child,
     );
@@ -69,6 +73,10 @@ class BlocProviders extends StatelessWidget {
 
   PasswordListBloc _passwordListBlocBuilder(BuildContext context) {
     return PasswordListBloc(RepositoryProvider.of<PasswordService>(context));
+  }
+
+  ProfileFormBloc _profileFormBlocBuilder(BuildContext context) {
+    return ProfileFormBloc(RepositoryProvider.of<UserService>(context));
   }
 }
 

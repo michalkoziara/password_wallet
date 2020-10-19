@@ -38,13 +38,13 @@ class PasswordService {
     final Uint8List secretKeyBytes = Uint8List.fromList(utf8.encode(userPassword));
     final Uint8List initializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
 
+    final crypto.Digest secretKeyDigest = crypto.md5.convert(secretKeyBytes);
+    final Uint8List secretKeyDigestBytes = Uint8List.fromList(secretKeyDigest.bytes);
+
     final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
       PKCS7Padding(),
       CBCBlockCipher(AESFastEngine()),
     );
-
-    final crypto.Digest secretKeyDigest = crypto.md5.convert(secretKeyBytes);
-    final Uint8List secretKeyDigestBytes = Uint8List.fromList(secretKeyDigest.bytes);
 
     aesCipher.init(
       true,
@@ -109,7 +109,7 @@ class PasswordService {
     );
 
     aesCipher.init(
-      true,
+      false,
       PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
         ParametersWithIV<KeyParameter>(KeyParameter(secretKeyDigestBytes), initializationVectorBytes),
         null,

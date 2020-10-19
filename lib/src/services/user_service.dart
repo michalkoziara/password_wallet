@@ -73,7 +73,8 @@ class UserService {
   }
 
   /// Changes user's profile password.
-  Future<Either<Failure, void>> changePassword({@required String username, @required String newPassword}) async {
+  Future<Either<Failure, void>> changePassword(
+      {@required String username, @required String oldUserPassword, @required String newUserPassword}) async {
     final User user = await _userRepository.getUserByUsername(username);
 
     if (user == null) {
@@ -84,9 +85,9 @@ class UserService {
     String hash = '';
 
     if (user.isPasswordKeptAsHash) {
-      hash = _calculateSha512(newPassword + randomKey + Constants.pepper);
+      hash = _calculateSha512(newUserPassword + randomKey + Constants.pepper);
     } else {
-      hash = _calculateHmacSha512(newPassword + Constants.pepper, randomKey);
+      hash = _calculateHmacSha512(newUserPassword + Constants.pepper, randomKey);
     }
 
     user.passwordHash = hash;
@@ -98,36 +99,64 @@ class UserService {
     }
 
     final List<Password> passwords = await _passwordRepository.getPasswordsByUserId(user.id);
-
     for (final Password password in passwords) {
-      final Uint8List passwordBytes = Uint8List.fromList(base64.decode(password.password));
-      final Uint8List secretKeyBytes = Uint8List.fromList(utf8.encode(newPassword));
-      final Uint8List initializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
+      final Uint8List oldPasswordBytes = Uint8List.fromList(base64.decode(password.password));
+      final Uint8List oldSecretKeyBytes = Uint8List.fromList(utf8.encode(oldUserPassword));
+      final Uint8List oldInitializationVectorBytes = Uint8List.fromList(base64.decode(password.vector));
 
-      final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
+      final crypto.Digest oldSecretKeyDigest = crypto.md5.convert(oldSecretKeyBytes);
+      final Uint8List oldSecretKeyDigestBytes = Uint8List.fromList(oldSecretKeyDigest.bytes);
+
+      final PaddedBlockCipher decryptAesCipher = PaddedBlockCipherImpl(
         PKCS7Padding(),
         CBCBlockCipher(AESFastEngine()),
       );
 
-      aesCipher.init(
-        true,
+      decryptAesCipher.init(
+        false,
         PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
-          ParametersWithIV<KeyParameter>(KeyParameter(secretKeyBytes), initializationVectorBytes),
+          ParametersWithIV<KeyParameter>(
+            KeyParameter(oldSecretKeyDigestBytes),
+            oldInitializationVectorBytes,
+          ),
           null,
         ),
       );
 
-      final Uint8List encryptedPasswordBytes = aesCipher.process(passwordBytes);
+      final Uint8List decryptedOldPasswordBytes = decryptAesCipher.process(oldPasswordBytes);
 
-      final String encryptedPassword = base64.encode(encryptedPasswordBytes);
-      final String initializationVector = base64.encode(initializationVectorBytes);
+      final Uint8List newSecretKeyBytes = Uint8List.fromList(utf8.encode(newUserPassword));
+      final Uint8List newInitializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
 
-      password.password = encryptedPassword;
-      password.vector = initializationVector;
+      final crypto.Digest newSecretKeyDigest = crypto.md5.convert(newSecretKeyBytes);
+      final Uint8List newSecretKeyDigestBytes = Uint8List.fromList(newSecretKeyDigest.bytes);
+
+      final PaddedBlockCipher encryptAesCipher = PaddedBlockCipherImpl(
+        PKCS7Padding(),
+        CBCBlockCipher(AESFastEngine()),
+      );
+
+      encryptAesCipher.init(
+        true,
+        PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
+          ParametersWithIV<KeyParameter>(KeyParameter(newSecretKeyDigestBytes), newInitializationVectorBytes),
+          null,
+        ),
+      );
+
+      final Uint8List encryptedNewPasswordBytes = encryptAesCipher.process(decryptedOldPasswordBytes);
+
+      password.password = base64.encode(encryptedNewPasswordBytes);
+      password.vector = base64.encode(newInitializationVectorBytes);
     }
 
     final List<dynamic> passwordsUpdateResults = await _passwordRepository.updatePasswords(passwords);
-    print(passwordsUpdateResults);
+
+    for (final dynamic result in passwordsUpdateResults) {
+      if (result != 1) {
+        return Left<Failure, void>(UserUpdateFailure());
+      }
+    }
 
     return const Right<Failure, void>(null);
   }

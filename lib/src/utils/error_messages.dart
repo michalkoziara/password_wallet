@@ -13,8 +13,11 @@ class ErrorMessages {
   static const String userSigningFailureMessage = 'Password is incorrect, please try again.';
 
   /// The error message displayed when user incorrectly completed password form.
-  static const String passwordCreationFailure = 'Provided information is incorrect, please try again.';
+  static const String passwordCreationFailureMessage = 'Provided information is incorrect, please try again.';
 
   /// The error message displayed when user is incorrect during password creation.
-  static const String incorrectUserPasswordCreationFailure = 'Your user profile is incorrect, please log in again.';
+  static const String incorrectUserPasswordCreationFailureMessage = 'Your user profile is incorrect, please log in again.';
+
+  /// The error message displayed when user profile update failed.
+  static const String userProfileUpdateFailureMessage = 'User profile update failed, please try again.';
 }

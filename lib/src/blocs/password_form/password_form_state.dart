@@ -4,13 +4,13 @@ import 'package:meta/meta.dart';
 @immutable
 abstract class PasswordFormState {}
 
-/// A class representing the status of a completed password form.
+/// A class representing the state of a completed password form.
 class PasswordFormCompletedState extends PasswordFormState {}
 
-/// A class representing the status of a not completed password form.
+/// A class representing the state of a not completed password form.
 class PasswordFormNotCompletedState extends PasswordFormState {}
 
-/// A class representing the status of a incorrectly completed password form.
+/// A class representing the state of a incorrectly completed password form.
 class PasswordFormIncorrectState extends PasswordFormState {
   /// Creates an error state.
   PasswordFormIncorrectState({@required this.message});
