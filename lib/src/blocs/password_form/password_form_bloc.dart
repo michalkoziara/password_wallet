@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
-import 'package:dartz/dartz.dart';
+import 'package:bloc/bloc.dart' show Bloc;
+import 'package:dartz/dartz.dart' show Either;
 
 import '../../services/services.dart' show PasswordService;
 import '../../utils/error_messages.dart';

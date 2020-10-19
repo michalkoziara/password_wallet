@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' show BlocProvider, MultiBlocProvider, RepositoryProvider;
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 import 'blocs/blocs.dart' show RegistrationBloc, PasswordFormBloc, ProfileFormBloc, PasswordListBloc;
