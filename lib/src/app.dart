@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:password_wallet/src/blocs/profile_form/profile_form.dart';
 
-import 'blocs/blocs.dart' show RegistrationBloc;
-import 'blocs/password_form/password_form.dart';
-import 'blocs/password_list/password_list.dart';
+import 'blocs/blocs.dart' show RegistrationBloc, PasswordFormBloc, ProfileFormBloc, PasswordListBloc;
 import 'pages/login/login_page.dart';
 import 'repositories/repositories.dart';
 import 'services/services.dart';

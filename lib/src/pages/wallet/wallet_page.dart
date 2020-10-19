@@ -2,10 +2,10 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:password_wallet/src/blocs/profile_form/profile_form.dart';
 
 import '../../blocs/password_form/password_form.dart';
 import '../../blocs/password_list/password_list.dart';
+import '../../blocs/profile_form/profile_form.dart';
 import 'password_form.dart';
 import 'passwords_list.dart';
 import 'profile_form.dart';

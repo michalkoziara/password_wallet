@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
 import '../../blocs/password_list/password_list.dart';
-import '../../data/models/models.dart';
+import '../../data/models/models.dart' show Password;
 
 /// An expandable list of passwords with descriptions.
 class PasswordsList extends StatefulWidget {

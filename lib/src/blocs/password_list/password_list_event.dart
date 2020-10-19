@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
-import '../../data/models/models.dart';
+import '../../data/models/models.dart' show Password;
 
 /// A class representing a password list event.
 @immutable
