@@ -30,22 +30,27 @@ class PasswordService {
       @required String userPassword}) async {
     final User user = await _userRepository.getUserByUsername(username);
 
+    /// Checks if user with given username exists.
     if (user == null) {
       return Left<Failure, void>(NonExistentUserFailure());
     }
 
+    /// Creates bytes from text values.
     final Uint8List passwordBytes = Uint8List.fromList(utf8.encode(password));
     final Uint8List secretKeyBytes = Uint8List.fromList(utf8.encode(userPassword));
     final Uint8List initializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
 
+    /// Hashes user password with MD5 algorithm.
     final crypto.Digest secretKeyDigest = crypto.md5.convert(secretKeyBytes);
     final Uint8List secretKeyDigestBytes = Uint8List.fromList(secretKeyDigest.bytes);
 
+    /// Creates AES in CBC mode with PKCS7 padding.
     final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
       PKCS7Padding(),
       CBCBlockCipher(AESFastEngine()),
     );
 
+    /// Initializes algorithm with secret key and initialization vector.
     aesCipher.init(
       true,
       PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
@@ -54,11 +59,14 @@ class PasswordService {
       ),
     );
 
+    /// Encrypts password.
     final Uint8List encryptedPasswordBytes = aesCipher.process(passwordBytes);
 
+    /// Creates text from bytes.
     final String encryptedPassword = base64.encode(encryptedPasswordBytes);
     final String initializationVector = base64.encode(initializationVectorBytes);
 
+    /// Creates password data object.
     final Password newPassword = Password(
       userId: user.id,
       password: encryptedPassword,
@@ -68,6 +76,7 @@ class PasswordService {
       login: login,
     );
 
+    /// Saves password data in the database.
     final int result = await _passwordRepository.createPassword(newPassword);
     if (result == -1) {
       return Left<Failure, void>(PasswordCreationFailure());

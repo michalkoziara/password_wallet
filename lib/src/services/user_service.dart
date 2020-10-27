@@ -48,22 +48,33 @@ class UserService {
       {@required String username, @required String password, @required bool isEncryptingAlgorithmSha}) async {
     final User oldUser = await _userRepository.getUserByUsername(username);
 
+    /// Checks if user with given username already exists.
     if (oldUser != null) {
       return Left<Failure, void>(AlreadyExistingUserFailure());
     }
 
+    /// Randomly generates 256 bits.
     final String randomKey = base64.encode(_randomValuesGenerator.generateRandomBytes(256 ~/ 8));
-    String hash = '';
 
+    /// Calculates password's hash using a chosen encryption algorithm.
+    String hash = '';
     if (isEncryptingAlgorithmSha) {
+      /// Calculates the hash using SHA512 algorithm with random salt and pepper.
       hash = _calculateSha512(password + randomKey + Constants.pepper);
     } else {
+      /// Calculates the hash using HMAC-SHA512 algorithm with random salt and pepper.
       hash = _calculateHmacSha512(password + Constants.pepper, randomKey);
     }
 
-    final User user =
-        User(username: username, passwordHash: hash, salt: randomKey, isPasswordKeptAsHash: isEncryptingAlgorithmSha);
+    /// Creates user data object.
+    final User user = User(
+      username: username,
+      passwordHash: hash,
+      salt: randomKey,
+      isPasswordKeptAsHash: isEncryptingAlgorithmSha,
+    );
 
+    /// Saves user data in the database.
     final int result = await _userRepository.createUser(user);
     if (result == -1) {
       return Left<Failure, void>(UserCreationFailure());
@@ -161,20 +172,31 @@ class UserService {
     return const Right<Failure, void>(null);
   }
 
+  /// Calculates hash using SHA512 algorithm.
   String _calculateSha512(String text) {
+    /// Creates bytes from a given text value.
     final List<int> bytes = utf8.encode(text);
+
+    /// Hashes bytes using SHA512 algorithm.
     final crypto.Digest digest = crypto.sha512.convert(bytes);
 
+    /// Returns the message digest as a string of hexadecimal digits.
     return digest.toString();
   }
 
+  /// Calculates hash using HMAC-SHA512 algorithm.
   String _calculateHmacSha512(String text, String key) {
+    /// Creates bytes from given text values.
     final List<int> keyBytes = utf8.encode(key);
     final List<int> textBytes = utf8.encode(text);
 
+    /// Creates HMAC-SHA512 algorithm with a given secret key bytes.
     final crypto.Hmac hmacSha512 = crypto.Hmac(crypto.sha512, keyBytes);
+
+    /// Hashes bytes using HMAC-SHA512 algorithm.
     final crypto.Digest digest = hmacSha512.convert(textBytes);
 
+    /// Returns the message digest as a string of hexadecimal digits.
     return digest.toString();
   }
 }
