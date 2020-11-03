@@ -32,7 +32,7 @@ class LoginWidget extends StatelessWidget {
                 milliseconds: 200,
               ),
               width: double.infinity,
-              height: isKeyboardVisible ? 80 : 200,
+              height: isKeyboardVisible ? 80 : 150,
               child: SvgPicture.asset(
                 'assets/images/security_lock.svg',
                 fit: BoxFit.scaleDown,

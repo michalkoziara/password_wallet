@@ -22,6 +22,7 @@ class _LoginFormState extends State<LoginForm> {
 
   TextEditingController _usernameController;
   TextEditingController _passwordController;
+  TextEditingController _validationPasswordController;
 
   bool _isEncryptingAlgorithmSha = true;
 
@@ -29,6 +30,7 @@ class _LoginFormState extends State<LoginForm> {
   void initState() {
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    _validationPasswordController = TextEditingController();
 
     super.initState();
   }
@@ -69,6 +71,56 @@ class _LoginFormState extends State<LoginForm> {
               iconData: FlutterIcons.lock1_ant,
               validationErrorMessage: 'Please enter password',
             ),
+            BlocBuilder<RegistrationBloc, RegistrationState>(builder: (BuildContext context, RegistrationState state) {
+              if (state is RegistrationVisibleState) {
+                return TextFormField(
+                  keyboardType: TextInputType.visiblePassword,
+                  maxLines: null,
+                  controller: _validationPasswordController,
+                  cursorColor: const Color(0xFF8858E1),
+                  decoration: InputDecoration(
+                    helperText: ' ',
+                    helperStyle: const TextStyle(height: 1),
+                    errorStyle: const TextStyle(height: 1, color: Colors.white),
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: 'Validation password',
+                    prefixIcon: const Icon(
+                      FlutterIcons.lock1_ant,
+                      color: Color(0xFF8858E1),
+                    ),
+                    focusColor: const Color(0xFF8858E1),
+                    contentPadding: const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.redAccent),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.redAccent),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  validator: (String value) {
+                    if (value.isEmpty || value != _passwordController.value.text) {
+                      return 'Please enter password';
+                    }
+                    return null;
+                  },
+                );
+              }
+
+              return const SizedBox(
+                height: 25,
+              );
+            }),
             BlocBuilder<RegistrationBloc, RegistrationState>(
               builder: (BuildContext context, RegistrationState state) {
                 if (state is RegistrationVisibleState) {
