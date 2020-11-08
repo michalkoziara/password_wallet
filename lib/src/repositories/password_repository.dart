@@ -1,10 +1,13 @@
 import '../data/daos/daos.dart' show PasswordDao;
 import '../data/models/models.dart' show Password;
 
-/// A user data access repository.
+/// A password data access repository.
 class PasswordRepository {
+  /// Creates password data access repository.
+  PasswordRepository({PasswordDao passwordDao}) : _passwordDao = passwordDao ?? PasswordDao();
+
   /// The password data access object.
-  final PasswordDao _passwordDao = PasswordDao();
+  final PasswordDao _passwordDao;
 
   /// Gets passwords with given user ID.
   Future<List<Password>> getPasswordsByUserId(int userId) => _passwordDao.getPasswordsByUserId(userId: userId);

@@ -14,6 +14,16 @@ class User {
     );
   }
 
+  /// Clones this user.
+  User.copy(User other)
+      : this(
+          id: other.id,
+          username: other.username,
+          passwordHash: other.passwordHash,
+          salt: other.salt,
+          isPasswordKeptAsHash: other.isPasswordKeptAsHash,
+        );
+
   /// Creates map based on this user.
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -39,4 +49,15 @@ class User {
 
   /// The flag that represents if password is kept as a hash.
   bool isPasswordKeptAsHash;
+
+  @override
+  String toString() {
+    return 'User{'
+        'id: $id, '
+        'username: $username, '
+        'passwordHash: $passwordHash, '
+        'salt: $salt, '
+        'isPasswordKeptAsHash: $isPasswordKeptAsHash'
+        '}';
+  }
 }

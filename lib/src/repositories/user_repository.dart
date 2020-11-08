@@ -3,8 +3,11 @@ import '../data/models/models.dart' show User;
 
 /// A user data access repository.
 class UserRepository {
+  /// Creates user data access repository.
+  UserRepository({UserDao userDao}) : _userDao = userDao ?? UserDao();
+
   /// The user data access object.
-  final UserDao _userDao = UserDao();
+  final UserDao _userDao;
 
   /// Gets user with given username.
   Future<User> getUserByUsername(String username) => _userDao.getUserByUsername(username: username);

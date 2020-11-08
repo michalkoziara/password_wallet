@@ -61,8 +61,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Splash screen and icons.
   flutter_native_splash: ^0.1.9
   flutter_launcher_icons: ^0.8.1
+  # Mocking framework for unit tests.
+  mockito: ^4.1.3
+  # BLoC testing.
+  bloc_test: ^7.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

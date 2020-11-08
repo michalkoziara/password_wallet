@@ -6,8 +6,12 @@ import '../models/models.dart' show Password;
 
 /// A data access object representing password data access.
 class PasswordDao {
+  /// Creates data access object representing password data access.
+  PasswordDao({DatabaseProvider databaseProvider})
+      : _databaseProvider = databaseProvider ?? DatabaseProvider.databaseProvider;
+
   /// The database provider.
-  final DatabaseProvider _databaseProvider = DatabaseProvider.databaseProvider;
+  final DatabaseProvider _databaseProvider;
 
   /// Returns passwords based on user's ID.
   Future<List<Password>> getPasswordsByUserId({List<String> columns, int userId}) async {
@@ -28,7 +32,7 @@ class PasswordDao {
     final Database database = await _databaseProvider.database;
 
     final List<Map<String, dynamic>> result =
-    await database.query(Constants.passwordTable, columns: columns, where: 'id = ?', whereArgs: <int>[id]);
+        await database.query(Constants.passwordTable, columns: columns, where: 'id = ?', whereArgs: <int>[id]);
 
     final List<Password> passwords = result.isNotEmpty
         ? result.map((Map<String, dynamic> password) => Password.fromMap(password)).toList()

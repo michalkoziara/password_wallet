@@ -16,6 +16,18 @@ class Password {
     );
   }
 
+  /// Clones this password.
+  Password.copy(Password other)
+      : this(
+          id: other.id,
+          userId: other.userId,
+          password: other.password,
+          vector: other.vector,
+          webAddress: other.webAddress,
+          description: other.description,
+          login: other.login,
+        );
+
   /// Creates map based on this password.
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -49,4 +61,17 @@ class Password {
 
   /// The login that is used with this password.
   String login;
+
+  @override
+  String toString() {
+    return 'Password{'
+        'id: $id, '
+        'userId: $userId, '
+        'password: $password, '
+        'vector: $vector, '
+        'webAddress: $webAddress, '
+        'description: $description, '
+        'login: $login'
+        '}';
+  }
 }
