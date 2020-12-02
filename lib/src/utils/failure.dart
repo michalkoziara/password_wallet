@@ -23,3 +23,15 @@ class UserSigningFailure extends Failure {}
 
 /// A class representing password creation failure.
 class PasswordCreationFailure extends Failure {}
+
+/// A class representing an IP address not found failure.
+class IpAddressNotFoundFailure extends Failure {}
+
+/// A class representing log creation failure.
+class LogCreationFailure extends Failure {}
+
+/// A class representing blocked user login failure.
+class BlockedUserLoginFailure extends Failure {}
+
+/// A class representing blocked IP address login failure.
+class BlockedIpAddressLoginFailure extends Failure {}

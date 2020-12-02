@@ -11,4 +11,7 @@ class Constants {
 
   /// The name of the password table.
   static const String passwordTable = 'password';
+
+  /// The name of the log table.
+  static const String logTable = 'log';
 }

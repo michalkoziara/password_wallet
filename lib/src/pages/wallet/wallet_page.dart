@@ -6,6 +6,8 @@ import 'package:flutter_icons/flutter_icons.dart';
 import '../../blocs/password_form/password_form.dart';
 import '../../blocs/password_list/password_list.dart';
 import '../../blocs/profile_form/profile_form.dart';
+import 'addresses_list.dart';
+import 'logs_list.dart';
 import 'password_form.dart';
 import 'passwords_list.dart';
 import 'profile_form.dart';
@@ -44,11 +46,13 @@ class _WalletPageState extends State<WalletPage> {
         backgroundColor: const Color(0xFF9B94E9),
         style: TabStyle.react,
         items: const <TabItem<IconData>>[
-          TabItem<IconData>(icon: FlutterIcons.add_mdi, title: 'Add password'),
+          TabItem<IconData>(icon: FlutterIcons.user_edit_faw5s, title: 'Change'),
+          TabItem<IconData>(icon: FlutterIcons.add_mdi, title: 'Add'),
           TabItem<IconData>(icon: FlutterIcons.list_sli, title: 'Passwords'),
-          TabItem<IconData>(icon: FlutterIcons.user_edit_faw5s, title: 'Change password'),
+          TabItem<IconData>(icon: FlutterIcons.format_list_checks_mco, title: 'Logs'),
+          TabItem<IconData>(icon: FlutterIcons.block_ent, title: 'Blocked'),
         ],
-        initialActiveIndex: 1,
+        initialActiveIndex: 2,
         onTap: (int i) => setState(() {
           activeIndex = i;
         }),
@@ -135,22 +139,28 @@ class _WalletPageState extends State<WalletPage> {
   Widget _createContent() {
     switch (activeIndex) {
       case 0:
-        return PasswordForm(
+        return ProfileForm(
           username: widget.username,
           password: password,
         );
 
       case 1:
-        return PasswordsList(
+        return PasswordForm(
           username: widget.username,
           password: password,
         );
 
       case 2:
-        return ProfileForm(
+        return PasswordsList(
           username: widget.username,
           password: password,
         );
+
+      case 3:
+        return LogsList(username: widget.username);
+
+      case 4:
+        return AddressesList(username: widget.username);
 
       default:
         return Container();

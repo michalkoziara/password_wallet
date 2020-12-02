@@ -25,7 +25,8 @@ class DatabaseProvider {
 
   /// Creates database.
   Future<Database> createDatabase() async {
-    final Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    final Directory documentsDirectory =
+        await getApplicationDocumentsDirectory();
     final String path = join(documentsDirectory.path, 'database.db');
 
     final Database database = await openDatabase(
@@ -50,6 +51,7 @@ class DatabaseProvider {
   Future<void> initializeDatabase(Database database, int version) async {
     final String userTable = Constants.userTable;
     final String passwordTable = Constants.passwordTable;
+    final String logTable = Constants.logTable;
 
     await database
         .execute(
@@ -62,18 +64,30 @@ class DatabaseProvider {
           ')',
         )
         .then(
-          (_) async => await database.execute(
-            'CREATE TABLE $passwordTable ('
-            'id INTEGER PRIMARY KEY, '
-            'userId INTEGER, '
-            'password TEXT, '
-            'vector TEXT, '
-            'webAddress TEXT, '
-            'description TEXT, '
-            'login TEXT, '
-            'FOREIGN KEY (userId) REFERENCES user (id)'
-            ')',
-          ),
+          (_) async => await database
+              .execute(
+                'CREATE TABLE $passwordTable ('
+                'id INTEGER PRIMARY KEY, '
+                'userId INTEGER, '
+                'password TEXT, '
+                'vector TEXT, '
+                'webAddress TEXT, '
+                'description TEXT, '
+                'login TEXT, '
+                'FOREIGN KEY (userId) REFERENCES user (id)'
+                ')',
+              )
+              .then((_) async => database.execute(
+                    'CREATE TABLE $logTable ('
+                    'id INTEGER PRIMARY KEY, '
+                    'userId INTEGER, '
+                    'isSuccessful INTEGER, '
+                    'ipAddress TEXT, '
+                    'isUnblocked INTEGER, '
+                    'loginTime INTEGER, '
+                    'FOREIGN KEY (userId) REFERENCES user (id)'
+                    ')',
+                  )),
         );
   }
 }

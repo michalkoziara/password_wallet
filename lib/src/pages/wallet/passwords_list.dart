@@ -49,6 +49,21 @@ class _PasswordsListState extends State<PasswordsList> {
                   color: Color(0xFFE1DFF8),
                 ),
               ),
+              Container(
+                color: const Color(0xFFE1DFF8),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const <Widget>[
+                      Text(
+                        'Passwords List',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:clock/clock.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -13,18 +14,30 @@ class MockUserRepository extends Mock implements UserRepository {}
 
 class MockPasswordRepository extends Mock implements PasswordRepository {}
 
+class MockLogRepository extends Mock implements LogRepository {}
+
+class MockIpAddressRepository extends Mock implements IpAddressRepository {}
+
 class MockRandomValuesGenerator extends Mock implements RandomValuesGenerator {}
+
+class MockClock extends Mock implements Clock {}
 
 void main() {
   final MockUserRepository mockUserRepository = MockUserRepository();
   final MockPasswordRepository mockPasswordRepository = MockPasswordRepository();
+  final MockLogRepository mockLogRepository = MockLogRepository();
+  final MockIpAddressRepository mockIpAddressRepository = MockIpAddressRepository();
   final MockRandomValuesGenerator mockRandomValuesGenerator = MockRandomValuesGenerator();
+  final MockClock mockClock = MockClock();
 
   setUp(() {});
   tearDown(() {
     reset(mockUserRepository);
     reset(mockPasswordRepository);
+    reset(mockLogRepository);
+    reset(mockIpAddressRepository);
     reset(mockRandomValuesGenerator);
+    reset(mockClock);
   });
 
   group(
@@ -52,11 +65,19 @@ void main() {
           when(mockRandomValuesGenerator.generateRandomBytes(any))
               .thenAnswer((Invocation realInvocation) => testVectorBytes);
 
-          when(mockUserRepository.getUserByUsername(any)).thenAnswer((Invocation realInvocation) => null);
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
+          final List<User> users = <User>[null, User(id: 1)];
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(users.removeAt(0)));
 
           when(mockUserRepository.createUser(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
 
-          final UserService userService = UserService(mockUserRepository, null, mockRandomValuesGenerator);
+          when(mockLogRepository.createLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
+
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.registerUser(
@@ -66,9 +87,9 @@ void main() {
           );
 
           /// Then
-          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured.single, testUsername);
+          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured[0], testUsername);
 
-          final dynamic capturedUser = verify(mockUserRepository.createUser(captureAny)).captured.single;
+          final dynamic capturedUser = verify(mockUserRepository.createUser(captureAny)).captured[0];
 
           expect(capturedUser, isNotNull);
           expect(capturedUser.username, testUser.username);
@@ -105,11 +126,19 @@ void main() {
           when(mockRandomValuesGenerator.generateRandomBytes(any))
               .thenAnswer((Invocation realInvocation) => testVectorBytes);
 
-          when(mockUserRepository.getUserByUsername(any)).thenAnswer((Invocation realInvocation) => null);
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
+          final List<User> users = <User>[null, User(id: 1)];
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(users.removeAt(0)));
+
+          when(mockLogRepository.createLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
 
           when(mockUserRepository.createUser(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
 
-          final UserService userService = UserService(mockUserRepository, null, mockRandomValuesGenerator);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.registerUser(
@@ -119,9 +148,9 @@ void main() {
           );
 
           /// Then
-          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured.single, testUsername);
+          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured[0], testUsername);
 
-          final dynamic capturedUser = verify(mockUserRepository.createUser(captureAny)).captured.single;
+          final dynamic capturedUser = verify(mockUserRepository.createUser(captureAny)).captured[0];
 
           expect(capturedUser, isNotNull);
           expect(capturedUser.username, testUser.username);
@@ -152,10 +181,14 @@ void main() {
             isPasswordKeptAsHash: testIsEncryptingAlgorithmSha,
           );
 
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
           when(mockUserRepository.getUserByUsername(any))
               .thenAnswer((Invocation realInvocation) => Future<User>.value(User.copy(testUser)));
 
-          final UserService userService = UserService(mockUserRepository, null, mockRandomValuesGenerator);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.registerUser(
@@ -196,11 +229,15 @@ void main() {
           when(mockRandomValuesGenerator.generateRandomBytes(any))
               .thenAnswer((Invocation realInvocation) => testVectorBytes);
 
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
           when(mockUserRepository.getUserByUsername(any)).thenAnswer((Invocation realInvocation) => null);
 
           when(mockUserRepository.createUser(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(-1));
 
-          final UserService userService = UserService(mockUserRepository, null, mockRandomValuesGenerator);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.registerUser(
@@ -247,10 +284,22 @@ void main() {
             isPasswordKeptAsHash: true,
           );
 
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
+          when(mockLogRepository.createLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
+
+          when(mockLogRepository.getLogsByUserId(any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
           when(mockUserRepository.getUserByUsername(any))
               .thenAnswer((Invocation realInvocation) => Future<User>.value(User.copy(testUser)));
 
-          final UserService userService = UserService(mockUserRepository, null, null);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.checkCredentials(
@@ -259,7 +308,7 @@ void main() {
           );
 
           /// Then
-          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured.single, testUsername);
+          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured[0], testUsername);
 
           result.fold(
             (Failure exception) => expect(exception, isNull),
@@ -283,10 +332,22 @@ void main() {
             isPasswordKeptAsHash: false,
           );
 
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
+          when(mockLogRepository.createLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
+
+          when(mockLogRepository.getLogsByUserId(any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
           when(mockUserRepository.getUserByUsername(any))
               .thenAnswer((Invocation realInvocation) => Future<User>.value(User.copy(testUser)));
 
-          final UserService userService = UserService(mockUserRepository, null, null);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.checkCredentials(
@@ -295,7 +356,7 @@ void main() {
           );
 
           /// Then
-          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured.single, testUsername);
+          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured[0], testUsername);
 
           result.fold(
             (Failure exception) => expect(exception, isNull),
@@ -313,7 +374,8 @@ void main() {
 
           when(mockUserRepository.getUserByUsername(any)).thenAnswer((Invocation realInvocation) => null);
 
-          final UserService userService = UserService(mockUserRepository, null, null);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.checkCredentials(
@@ -346,10 +408,20 @@ void main() {
             isPasswordKeptAsHash: true,
           );
 
+          when(mockIpAddressRepository.getPublicIpAddress())
+              .thenAnswer((Invocation realInvocation) => Future<String>.value('1.1.1.1'));
+
+          when(mockLogRepository.getLogsByUserId(any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
           when(mockUserRepository.getUserByUsername(any))
               .thenAnswer((Invocation realInvocation) => Future<User>.value(User.copy(testUser)));
 
-          final UserService userService = UserService(mockUserRepository, null, null);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.checkCredentials(
@@ -358,7 +430,7 @@ void main() {
           );
 
           /// Then
-          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured.single, testUsername);
+          expect(verify(mockUserRepository.getUserByUsername(captureAny)).captured[0], testUsername);
 
           result.fold(
             (Failure exception) => expect(exception, isA<UserSigningFailure>()),
@@ -441,8 +513,8 @@ void main() {
           when(mockPasswordRepository.updatePasswords(any))
               .thenAnswer((Invocation realInvocation) => Future<List<dynamic>>.value(<int>[1, 1]));
 
-          final UserService userService =
-              UserService(mockUserRepository, mockPasswordRepository, mockRandomValuesGenerator);
+          final UserService userService = UserService(mockUserRepository, mockPasswordRepository, mockLogRepository,
+              mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.changePassword(
@@ -564,8 +636,8 @@ void main() {
           when(mockPasswordRepository.updatePasswords(any))
               .thenAnswer((Invocation realInvocation) => Future<List<dynamic>>.value(<int>[1, 1]));
 
-          final UserService userService =
-              UserService(mockUserRepository, mockPasswordRepository, mockRandomValuesGenerator);
+          final UserService userService = UserService(mockUserRepository, mockPasswordRepository, mockLogRepository,
+              mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.changePassword(
@@ -628,7 +700,8 @@ void main() {
 
           when(mockUserRepository.getUserByUsername(any)).thenAnswer((Invocation realInvocation) => null);
 
-          final UserService userService = UserService(mockUserRepository, null, null);
+          final UserService userService = UserService(
+              mockUserRepository, null, mockLogRepository, mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.changePassword(
@@ -683,8 +756,8 @@ void main() {
 
           when(mockUserRepository.updateUser(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(-1));
 
-          final UserService userService =
-              UserService(mockUserRepository, mockPasswordRepository, mockRandomValuesGenerator);
+          final UserService userService = UserService(mockUserRepository, mockPasswordRepository, mockLogRepository,
+              mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.changePassword(
@@ -715,7 +788,7 @@ void main() {
 
       test(
         "Given valid user's data When change passwords failed Then failure is returned",
-            () async {
+        () async {
           /// Given
           const String testUsername = 'test';
           const String testUserOldPassword = 'test';
@@ -726,7 +799,7 @@ void main() {
             id: 1,
             username: testUsername,
             passwordHash:
-            '2fcdba02fad94d96774b935791103d4e31b17c71bf0afb02c433f009b0bd22ec28e3a39f375b6d5e29f135262209b397350adb38f86dec525829a290c80d7fd3',
+                '2fcdba02fad94d96774b935791103d4e31b17c71bf0afb02c433f009b0bd22ec28e3a39f375b6d5e29f135262209b397350adb38f86dec525829a290c80d7fd3',
             salt: 'oWZN14/wsaHsG0jXz+VQMQ==',
             isPasswordKeptAsHash: testIsEncryptingAlgorithmSha,
           );
@@ -758,7 +831,7 @@ void main() {
           const String testNewVector = 'oWZN14/wsaHsG0jXz+VQMQ==';
 
           final Uint8List testVectorBytes =
-          Uint8List.fromList(<int>[161, 102, 77, 215, 143, 240, 177, 161, 236, 27, 72, 215, 207, 229, 80, 49]);
+              Uint8List.fromList(<int>[161, 102, 77, 215, 143, 240, 177, 161, 236, 27, 72, 215, 207, 229, 80, 49]);
 
           when(mockRandomValuesGenerator.generateRandomBytes(any))
               .thenAnswer((Invocation realInvocation) => testVectorBytes);
@@ -766,7 +839,7 @@ void main() {
           when(
             mockUserRepository.getUserByUsername(any),
           ).thenAnswer(
-                (Invocation realInvocation) => Future<User>.value(User.copy(testUser)),
+            (Invocation realInvocation) => Future<User>.value(User.copy(testUser)),
           );
 
           when(mockUserRepository.updateUser(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
@@ -774,7 +847,7 @@ void main() {
           when(
             mockPasswordRepository.getPasswordsByUserId(any),
           ).thenAnswer(
-                (Invocation realInvocation) => Future<List<Password>>.value(
+            (Invocation realInvocation) => Future<List<Password>>.value(
               testPasswords.map((Password testPassword) => Password.copy(testPassword)).toList(),
             ),
           );
@@ -782,8 +855,8 @@ void main() {
           when(mockPasswordRepository.updatePasswords(any))
               .thenAnswer((Invocation realInvocation) => Future<List<dynamic>>.value(<int>[1, -1]));
 
-          final UserService userService =
-          UserService(mockUserRepository, mockPasswordRepository, mockRandomValuesGenerator);
+          final UserService userService = UserService(mockUserRepository, mockPasswordRepository, mockLogRepository,
+              mockIpAddressRepository, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await userService.changePassword(
@@ -830,9 +903,352 @@ void main() {
           }
 
           result.fold(
-                (Failure exception) => expect(exception, isA<UserUpdateFailure>()),
-                (void _) => _,
+            (Failure exception) => expect(exception, isA<UserUpdateFailure>()),
+            (void _) => _,
           );
+        },
+      );
+    },
+  );
+
+  group(
+    'Add Log',
+    () {
+      test(
+        "Given valid log's data When add log is called Then success is returned",
+        () async {
+          /// Given
+          when(mockLogRepository.createLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
+
+          final UserService userService = UserService(null, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.addLog(userId: 1, isSuccessful: true, ipAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+    },
+  );
+
+  group(
+    'Get User Logs',
+    () {
+      test(
+        "Given valid username When get user logs is called Then user's logs are returned",
+        () async {
+          /// Given
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+          when(mockLogRepository.getLogsByUserId(any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[Log(id: 1)]));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final List<Log> result = await userService.getUserLogs(username: 'Test User');
+
+          /// Then
+          expect(result.isNotEmpty, true);
+          expect(result.length, 1);
+          expect(result[0].id, 1);
+        },
+      );
+
+      test(
+        "Given invalid username When get user logs is called Then user's logs are NOT returned",
+        () async {
+          /// Given
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(null));
+          when(mockLogRepository.getLogsByUserId(any))
+              .thenAnswer((Invocation realInvocation) => Future<List<Log>>.value(<Log>[]));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final List<Log> result = await userService.getUserLogs(username: 'Invalid Test User');
+
+          /// Then
+          expect(result.isEmpty, true);
+        },
+      );
+    },
+  );
+
+  group(
+    'Get Blocked IP Addresses',
+    () {
+      test(
+        "Given valid username When get blocked IP addresses is called Then user's blocked IP addresses are returned",
+        () async {
+          /// Given
+          final Log testInvalidLog = Log(id: 1, ipAddress: '1.1.1.1', isSuccessful: false, isUnblocked: false);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+          when(mockLogRepository.getLogsByUserId(any)).thenAnswer((Invocation realInvocation) =>
+              Future<List<Log>>.value(<Log>[testInvalidLog, testInvalidLog, testInvalidLog, testInvalidLog]));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final List<String> result = await userService.getBlockedIpAddresses(username: 'Test User');
+
+          /// Then
+          expect(result.isNotEmpty, true);
+          expect(result.length, 1);
+          expect(result[0], '1.1.1.1');
+        },
+      );
+
+      test(
+        "Given invalid username When get blocked IP addresses is called Then user's blocked IP addresses are NOT returned",
+        () async {
+          /// Given
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(null));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final List<String> result = await userService.getBlockedIpAddresses(username: 'Invalid Test User');
+
+          /// Then
+          expect(result.isEmpty, true);
+        },
+      );
+    },
+  );
+
+  group(
+    'Check User Block',
+    () {
+      test(
+        'Given valid username and successful login When check user block is called Then NOT blocked flag is returned',
+        () async {
+          /// Given
+          final Log testSuccessfulLog = Log(id: 1, ipAddress: '1.1.1.1', isSuccessful: true, isUnblocked: false);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+
+          when(mockLogRepository.getLogsByUserId(any)).thenAnswer((Invocation realInvocation) =>
+              Future<List<Log>>.value(
+                  <Log>[testSuccessfulLog, testSuccessfulLog, testSuccessfulLog, testSuccessfulLog]));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.checkUserBlock(username: 'Test User');
+
+          /// Then
+          expect(result, false);
+        },
+      );
+
+      test(
+        'Given valid username and failed login When check user block is called Then blocked flag is returned',
+        () async {
+          /// Given
+          final DateTime testTime = DateTime(2000, 1, 1, 12, 0, 0, 0, 0);
+          final Log testFailedLogin = Log(
+              id: 1,
+              ipAddress: '1.1.1.1',
+              isSuccessful: false,
+              isUnblocked: false,
+              loginTime: testTime.millisecondsSinceEpoch + 1);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+
+          when(mockLogRepository.getLogsByUserId(any)).thenAnswer((Invocation realInvocation) =>
+              Future<List<Log>>.value(<Log>[testFailedLogin, testFailedLogin, testFailedLogin, testFailedLogin]));
+
+          when(mockClock.now()).thenAnswer((Invocation realInvocation) => testTime);
+
+          final UserService userService =
+              UserService(mockUserRepository, null, mockLogRepository, null, null, clock: mockClock);
+
+          /// When
+          final bool result = await userService.checkUserBlock(username: 'Test User');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+
+      test(
+        'Given invalid username When check user block is called Then blocked flag is returned',
+        () async {
+          /// Given
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(null));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.checkUserBlock(username: 'Invalid Test User');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+    },
+  );
+
+  group(
+    'Check IP Block',
+    () {
+      test(
+        'Given valid data and successful login When check IP block is called Then NOT blocked flag is returned',
+        () async {
+          /// Given
+          final Log testSuccessfulLog = Log(id: 1, ipAddress: '1.1.1.1', isSuccessful: true, isUnblocked: false);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any)).thenAnswer((Invocation realInvocation) =>
+              Future<List<Log>>.value(
+                  <Log>[testSuccessfulLog, testSuccessfulLog, testSuccessfulLog, testSuccessfulLog]));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.checkIpBlock(username: 'Test User', ipAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, false);
+        },
+      );
+
+      test(
+        'Given valid data and failed login When check IP block is called Then blocked flag is returned',
+        () async {
+          /// Given
+          final DateTime testTime = DateTime(2000, 1, 1, 12, 0, 0, 0, 0);
+          final Log testFailedLogin = Log(
+              id: 1,
+              ipAddress: '1.1.1.1',
+              isSuccessful: false,
+              isUnblocked: false,
+              loginTime: testTime.millisecondsSinceEpoch - 1000);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any)).thenAnswer(
+              (Invocation realInvocation) => Future<List<Log>>.value(<Log>[testFailedLogin, testFailedLogin]));
+
+          when(mockClock.now()).thenAnswer((Invocation realInvocation) => testTime);
+
+          final UserService userService =
+              UserService(mockUserRepository, null, mockLogRepository, null, null, clock: mockClock);
+
+          /// When
+          final bool result = await userService.checkIpBlock(username: 'Test User', ipAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+
+      test(
+        'Given valid data and 4 failed login logs When check IP block is called Then blocked flag is returned',
+        () async {
+          /// Given
+          final DateTime testTime = DateTime(2000, 1, 1, 12, 0, 0, 0, 0);
+          final Log testFailedLogin = Log(
+              id: 1,
+              ipAddress: '1.1.1.1',
+              isSuccessful: false,
+              isUnblocked: false,
+              loginTime: testTime.millisecondsSinceEpoch - 100000000);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any)).thenAnswer((Invocation realInvocation) =>
+              Future<List<Log>>.value(<Log>[testFailedLogin, testFailedLogin, testFailedLogin, testFailedLogin]));
+
+          when(mockClock.now()).thenAnswer((Invocation realInvocation) => testTime);
+
+          final UserService userService =
+              UserService(mockUserRepository, null, mockLogRepository, null, null, clock: mockClock);
+
+          /// When
+          final bool result = await userService.checkIpBlock(username: 'Test User', ipAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+
+      test(
+        'Given invalid username When check IP block is called Then blocked flag is returned',
+        () async {
+          /// Given
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(null));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.checkIpBlock(username: 'Invalid Test User', ipAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+    },
+  );
+
+  group(
+    'Unblock IP',
+    () {
+      test(
+        'Given valid data When unblock IP is called Then success is returned',
+        () async {
+          /// Given
+          final Log testSuccessfulLog = Log(id: 1, ipAddress: '1.1.1.1', isSuccessful: true, isUnblocked: false);
+
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(User(id: 1)));
+
+          when(mockLogRepository.updateLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
+
+          when(mockLogRepository.getLogsByUserIdAndIpAddress(any, any)).thenAnswer((Invocation realInvocation) =>
+              Future<List<Log>>.value(
+                  <Log>[testSuccessfulLog, testSuccessfulLog, testSuccessfulLog, testSuccessfulLog]));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.unblockIp(username: 'Test User', blockedIpAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, true);
+        },
+      );
+
+      test(
+        'Given invalid username When unblock IP is called Then failure flag is returned',
+        () async {
+          /// Given
+          when(mockUserRepository.getUserByUsername(any))
+              .thenAnswer((Invocation realInvocation) => Future<User>.value(null));
+
+          when(mockLogRepository.updateLog(any)).thenAnswer((Invocation realInvocation) => Future<int>.value(1));
+
+          final UserService userService = UserService(mockUserRepository, null, mockLogRepository, null, null);
+
+          /// When
+          final bool result = await userService.unblockIp(username: 'Invalid Test User', blockedIpAddress: '1.1.1.1');
+
+          /// Then
+          expect(result, false);
         },
       );
     },

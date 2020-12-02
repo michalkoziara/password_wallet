@@ -91,7 +91,13 @@ class RepositoryProviders extends StatelessWidget {
       create: _userRepositoryBuilder,
       child: RepositoryProvider<PasswordRepository>(
         create: _passwordRepositoryBuilder,
-        child: child,
+        child: RepositoryProvider<LogRepository>(
+          create: _logRepositoryBuilder,
+          child: RepositoryProvider<IpAddressRepository>(
+            create: _ipAddressRepositoryBuilder,
+            child: child,
+          ),
+        ),
       ),
     );
   }
@@ -102,6 +108,14 @@ class RepositoryProviders extends StatelessWidget {
 
   PasswordRepository _passwordRepositoryBuilder(BuildContext context) {
     return PasswordRepository();
+  }
+
+  LogRepository _logRepositoryBuilder(BuildContext context) {
+    return LogRepository();
+  }
+
+  IpAddressRepository _ipAddressRepositoryBuilder(BuildContext context) {
+    return IpAddressRepository();
   }
 }
 
@@ -126,10 +140,11 @@ class ServiceProviders extends StatelessWidget {
 
   UserService _userServiceBuilder(BuildContext context) {
     return UserService(
-      RepositoryProvider.of<UserRepository>(context),
-      RepositoryProvider.of<PasswordRepository>(context),
-      RandomValuesGenerator(),
-    );
+        RepositoryProvider.of<UserRepository>(context),
+        RepositoryProvider.of<PasswordRepository>(context),
+        RepositoryProvider.of<LogRepository>(context),
+        RepositoryProvider.of<IpAddressRepository>(context),
+        RandomValuesGenerator());
   }
 
   PasswordService _passwordServiceBuilder(BuildContext context) {

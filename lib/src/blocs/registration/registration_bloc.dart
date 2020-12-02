@@ -86,6 +86,14 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
         return ErrorMessages.nonExistentUserFailureMessage;
       case UserSigningFailure:
         return ErrorMessages.userSigningFailureMessage;
+      case IpAddressNotFoundFailure:
+        return ErrorMessages.ipAddressNotFoundFailureMessage;
+      case LogCreationFailure:
+        return ErrorMessages.loginLogCreationFailureMessage;
+      case BlockedUserLoginFailure:
+        return ErrorMessages.blockedUserMessage;
+      case BlockedIpAddressLoginFailure:
+        return ErrorMessages.blockedIpAddressMessage;
       default:
         return 'Unexpected error';
     }

@@ -53,6 +53,8 @@ dependencies:
     git:
       url: https://github.com/hacktons/convex_bottom_bar.git
       ref: patch-highlight
+  # Encapsulated DateTime.now()
+  clock: ^1.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
