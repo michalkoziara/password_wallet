@@ -64,4 +64,13 @@ class PasswordDao {
     final List<dynamic> result = await batch.commit();
     return result;
   }
+
+  /// Deletes password based on ID.
+  Future<int> deletePasswordById({List<String> columns, int id}) async {
+    final Database database = await _databaseProvider.database;
+
+    final int result = await database.delete(Constants.passwordTable, where: 'id = ?', whereArgs: <int>[id]);
+
+    return result;
+  }
 }

@@ -152,4 +152,9 @@ class PasswordService {
 
     return newPassword;
   }
+
+  /// Removes password with given ID.
+  Future<bool> removePassword({@required int passwordId}) async {
+    return await _passwordRepository.deletePasswordById(passwordId) > 0;
+  }
 }

@@ -20,4 +20,7 @@ class PasswordRepository {
 
   /// Updates passwords.
   Future<List<dynamic>> updatePasswords(List<Password> passwords) => _passwordDao.updatePasswords(passwords);
+
+  /// Deletes password with given ID.
+  Future<int> deletePasswordById(int id) => _passwordDao.deletePasswordById(id: id);
 }
