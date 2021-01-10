@@ -31,6 +31,24 @@ class PasswordDao {
     return passwords;
   }
 
+  /// Returns passwords based on update status and user's ID.
+  Future<List<Password>> getPasswordsByUserIdAndUpdateStatus({List<String> columns, int userId}) async {
+    final Database database = await _databaseProvider.database;
+
+    final List<Map<String, dynamic>> result = await database.query(
+      Constants.passwordTable,
+      columns: columns,
+      where: 'userId = ? AND isSharedUpdated = ?',
+      whereArgs: <dynamic>[userId, true],
+    );
+
+    final List<Password> passwords = result.isNotEmpty
+        ? result.map((Map<String, dynamic> password) => Password.fromMap(password)).toList()
+        : <Password>[];
+
+    return passwords;
+  }
+
   /// Returns password based on ID.
   Future<Password> getPasswordById({List<String> columns, int id}) async {
     final Database database = await _databaseProvider.database;

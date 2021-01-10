@@ -129,10 +129,10 @@ class ServiceProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<UserService>(
-      create: _userServiceBuilder,
-      child: RepositoryProvider<PasswordService>(
-        create: _passwordServiceBuilder,
+    return RepositoryProvider<PasswordService>(
+      create: _passwordServiceBuilder,
+      child: RepositoryProvider<UserService>(
+        create: _userServiceBuilder,
         child: child,
       ),
     );
@@ -144,7 +144,8 @@ class ServiceProviders extends StatelessWidget {
         RepositoryProvider.of<PasswordRepository>(context),
         RepositoryProvider.of<LogRepository>(context),
         RepositoryProvider.of<IpAddressRepository>(context),
-        RandomValuesGenerator());
+        RandomValuesGenerator(),
+        RepositoryProvider.of<PasswordService>(context));
   }
 
   PasswordService _passwordServiceBuilder(BuildContext context) {

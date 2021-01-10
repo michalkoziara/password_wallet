@@ -23,31 +23,46 @@ class PasswordsList extends StatefulWidget {
 }
 
 class _PasswordsListState extends State<PasswordsList> {
-  bool isFormOpened;
-  Password editedPassword;
+  final FocusNode _textFieldFocusNode = FocusNode();
+
+  bool _checked;
+
+  TextEditingController _usernameController;
+  bool _isShareButtonActive;
+  bool _activeShare;
+  bool _isUsernameInputValid;
+
+  bool _isFormOpened;
+  Password _editedPassword;
 
   @override
   void initState() {
     super.initState();
 
-    isFormOpened = false;
+    _checked = false;
+    _isShareButtonActive = false;
+    _activeShare = false;
+    _isUsernameInputValid = true;
+    _isFormOpened = false;
 
     BlocProvider.of<PasswordListBloc>(context).add(
       PasswordListOpenEvent(
         username: widget.username,
       ),
     );
+
+    _usernameController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
-    return isFormOpened
+    return _isFormOpened
         ? PasswordEditForm(
             username: widget.username,
             userPassword: widget.password,
-            password: editedPassword,
+            password: _editedPassword,
             callback: (int result) => setState(() {
-              isFormOpened = false;
+              _isFormOpened = false;
 
               if (result == 0) {
                 Scaffold.of(context).showSnackBar(
@@ -106,6 +121,26 @@ class _PasswordsListState extends State<PasswordsList> {
                         ),
                       ),
                     ),
+                    Container(
+                      color: const Color(0xFFE1DFF8),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CheckboxListTile(
+                          title: const Text('Edit mode'),
+                          value: _checked,
+                          activeColor: Colors.deepPurpleAccent,
+                          checkColor: Colors.white,
+                          onChanged: (bool value) {
+                            setState(() {
+                              _checked = value;
+                            });
+                          },
+                          selected: _checked,
+                          secondary: const Icon(FlutterIcons.edit_mdi),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                        ),
+                      ),
+                    ),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
@@ -116,11 +151,19 @@ class _PasswordsListState extends State<PasswordsList> {
                                 expansionCallback: (int index, bool isExpanded) {
                                   if (!isExpanded) {
                                     BlocProvider.of<PasswordListBloc>(context).add(
-                                      PasswordListItemExtendedEvent(passwords: state.passwords, index: index),
+                                      PasswordListItemExtendedEvent(
+                                        passwords: state.passwords,
+                                        index: index,
+                                      ),
                                     );
+                                    _activeShare = false;
+                                    _isShareButtonActive = false;
                                   } else {
                                     BlocProvider.of<PasswordListBloc>(context).add(
-                                      PasswordListItemExtendedEvent(passwords: state.passwords, index: -1),
+                                      PasswordListItemExtendedEvent(
+                                        passwords: state.passwords,
+                                        index: -1,
+                                      ),
                                     );
                                   }
                                 },
@@ -174,8 +217,10 @@ class _PasswordsListState extends State<PasswordsList> {
 
                                                       return const Text(
                                                         'Hidden',
-                                                        style:
-                                                            TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                                        style: TextStyle(
+                                                          fontStyle: FontStyle.italic,
+                                                          color: Colors.grey,
+                                                        ),
                                                       );
                                                     },
                                                   ),
@@ -186,6 +231,10 @@ class _PasswordsListState extends State<PasswordsList> {
                                                       icon: const Icon(FlutterIcons.eye_mco, size: 20),
                                                       padding: const EdgeInsets.all(0),
                                                       onPressed: () {
+                                                        setState(() {
+                                                          _isShareButtonActive = true;
+                                                        });
+
                                                         if (state is PasswordListItemExpandedState) {
                                                           BlocProvider.of<PasswordListBloc>(context).add(
                                                             PasswordDisplayEvent(
@@ -218,55 +267,248 @@ class _PasswordsListState extends State<PasswordsList> {
                                                       ],
                                                     ),
                                                     Padding(
-                                                      padding: const EdgeInsets.only(bottom: 8.0),
+                                                      padding: const EdgeInsets.only(bottom: 8.0, top: 9.0),
                                                       child: Row(
                                                         children: <Widget>[
-                                                          const Spacer(),
-                                                          Padding(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 9.0),
-                                                            child: IconButton(
-                                                              icon:
-                                                                  const Icon(FlutterIcons.delete_forever_mdi, size: 26),
-                                                              padding: const EdgeInsets.all(0),
-                                                              onPressed: () {
-                                                                RepositoryProvider.of<PasswordService>(context)
-                                                                    .removePassword(passwordId: password.id)
-                                                                    .then((bool result) {
-                                                                  if (result) {
-                                                                    BlocProvider.of<PasswordListBloc>(context).add(
-                                                                      PasswordListOpenEvent(
-                                                                        username: widget.username,
-                                                                      ),
-                                                                    );
+                                                          RawMaterialButton(
+                                                            constraints: BoxConstraints.tight(const Size(45, 36)),
+                                                            child: const Icon(
+                                                              FlutterIcons.delete_forever_mdi,
+                                                              size: 26,
+                                                            ),
+                                                            shape: const RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.only(
+                                                                topLeft: Radius.circular(18.0),
+                                                                bottomLeft: Radius.circular(18.0),
+                                                              ),
+                                                            ),
+                                                            fillColor: _checked ? Colors.white : Colors.blueGrey[200],
+                                                            padding: const EdgeInsets.only(left: 5),
+                                                            onPressed: _checked
+                                                                ? () {
+                                                                    if (password.ownerPasswordId == null) {
+                                                                      _activeShare = false;
+                                                                      _isShareButtonActive = false;
+
+                                                                      RepositoryProvider.of<PasswordService>(context)
+                                                                          .removePassword(passwordId: password.id)
+                                                                          .then((bool result) {
+                                                                        if (result) {
+                                                                          BlocProvider.of<PasswordListBloc>(context)
+                                                                              .add(
+                                                                            PasswordListOpenEvent(
+                                                                              username: widget.username,
+                                                                            ),
+                                                                          );
+                                                                        }
+                                                                      });
+                                                                    } else {
+                                                                      Scaffold.of(context).showSnackBar(
+                                                                        SnackBar(
+                                                                          margin: const EdgeInsets.only(
+                                                                            bottom: 32,
+                                                                            left: 30,
+                                                                            right: 30,
+                                                                          ),
+                                                                          content: const Text(
+                                                                              'You have to be an owner to share this!'),
+                                                                          behavior: SnackBarBehavior.floating,
+                                                                        ),
+                                                                      );
+                                                                    }
                                                                   }
-                                                                });
-                                                              },
-                                                              constraints: const BoxConstraints(
-                                                                maxHeight: 28,
-                                                                maxWidth: 28,
+                                                                : null,
+                                                          ),
+                                                          const SizedBox(width: 5),
+                                                          RawMaterialButton(
+                                                            constraints: BoxConstraints.tight(const Size(45, 36)),
+                                                            child: const Icon(
+                                                              FlutterIcons.edit_mdi,
+                                                              size: 26,
+                                                            ),
+                                                            shape: const RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.only(
+                                                                topRight: Radius.circular(18.0),
+                                                                bottomRight: Radius.circular(18.0),
                                                               ),
                                                             ),
+                                                            fillColor: _checked ? Colors.white : Colors.blueGrey[200],
+                                                            padding: const EdgeInsets.only(right: 5),
+                                                            onPressed: _checked
+                                                                ? () {
+                                                                    if (password.ownerPasswordId == null) {
+                                                                      setState(() {
+                                                                        _activeShare = false;
+                                                                        _isShareButtonActive = false;
+
+                                                                        _isFormOpened = true;
+                                                                        _editedPassword = password;
+                                                                      });
+                                                                    } else {
+                                                                      Scaffold.of(context).showSnackBar(
+                                                                        SnackBar(
+                                                                          margin: const EdgeInsets.only(
+                                                                            bottom: 32,
+                                                                            left: 30,
+                                                                            right: 30,
+                                                                          ),
+                                                                          content: const Text(
+                                                                              'You have to be an owner to edit this!'),
+                                                                          behavior: SnackBarBehavior.floating,
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                  }
+                                                                : null,
                                                           ),
-                                                          Padding(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 9.0),
-                                                            child: IconButton(
-                                                              icon: const Icon(FlutterIcons.edit_mdi, size: 25),
-                                                              padding: const EdgeInsets.all(0),
+                                                          const Spacer(),
+                                                          if (_isShareButtonActive)
+                                                            RawMaterialButton(
+                                                              constraints: BoxConstraints.tight(const Size(45, 45)),
+                                                              child: Icon(
+                                                                FlutterIcons.share_sli,
+                                                                size: 26,
+                                                                color: _activeShare ? Colors.white : Colors.black87,
+                                                              ),
+                                                              shape: const CircleBorder(),
+                                                              fillColor:
+                                                                  _activeShare ? Colors.deepPurpleAccent : Colors.white,
+                                                              padding: const EdgeInsets.only(bottom: 3, right: 3),
                                                               onPressed: () {
-                                                                setState(() {
-                                                                  isFormOpened = true;
-                                                                  editedPassword = password;
-                                                                });
+                                                                if (password.ownerPasswordId == null) {
+                                                                  setState(() {
+                                                                    _activeShare = !_activeShare;
+                                                                  });
+                                                                } else {
+                                                                  Scaffold.of(context).showSnackBar(
+                                                                    SnackBar(
+                                                                      margin: const EdgeInsets.only(
+                                                                        bottom: 32,
+                                                                        left: 30,
+                                                                        right: 30,
+                                                                      ),
+                                                                      content: const Text(
+                                                                          'You have to be an owner to share this!'),
+                                                                      behavior: SnackBarBehavior.floating,
+                                                                    ),
+                                                                  );
+                                                                }
                                                               },
-                                                              constraints: const BoxConstraints(
-                                                                maxHeight: 28,
-                                                                maxWidth: 28,
-                                                              ),
                                                             ),
-                                                          ),
                                                         ],
                                                       ),
                                                     ),
+                                                    if (_activeShare)
+                                                      Padding(
+                                                        padding: const EdgeInsets.only(bottom: 3.0),
+                                                        child: TextField(
+                                                          focusNode: _textFieldFocusNode,
+                                                          maxLines: 1,
+                                                          controller: _usernameController,
+                                                          cursorColor: const Color(0xFF8858E1),
+                                                          decoration: InputDecoration(
+                                                            suffixIcon: IconButton(
+                                                              onPressed: () {
+                                                                _textFieldFocusNode.unfocus();
+                                                                _textFieldFocusNode.canRequestFocus = false;
+
+                                                                if (_usernameController.text.isEmpty ||
+                                                                    _usernameController.text == widget.username) {
+                                                                  setState(() {
+                                                                    _isUsernameInputValid = false;
+                                                                  });
+                                                                } else {
+                                                                  setState(() {
+                                                                    _isUsernameInputValid = true;
+                                                                  });
+
+                                                                  RepositoryProvider.of<PasswordService>(context)
+                                                                      .sharePassword(
+                                                                          password: password,
+                                                                          username: _usernameController.text,
+                                                                          ownerPassword: widget.password)
+                                                                      .then((bool result) {
+                                                                    if (result) {
+                                                                      Scaffold.of(context).showSnackBar(
+                                                                        SnackBar(
+                                                                          margin: const EdgeInsets.only(
+                                                                            bottom: 32,
+                                                                            left: 30,
+                                                                            right: 30,
+                                                                          ),
+                                                                          content: const Text('Password shared!'),
+                                                                          behavior: SnackBarBehavior.floating,
+                                                                        ),
+                                                                      );
+                                                                    } else {
+                                                                      Scaffold.of(context).showSnackBar(
+                                                                        SnackBar(
+                                                                          margin: const EdgeInsets.only(
+                                                                            bottom: 32,
+                                                                            left: 30,
+                                                                            right: 30,
+                                                                          ),
+                                                                          content: const Text(
+                                                                              'Could not share password, please try again!'),
+                                                                          behavior: SnackBarBehavior.floating,
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                  });
+                                                                }
+
+                                                                Future<void>.delayed(
+                                                                  const Duration(milliseconds: 100),
+                                                                  () => _textFieldFocusNode.canRequestFocus = true,
+                                                                );
+                                                              },
+                                                              icon: const Icon(
+                                                                FlutterIcons.arrowright_ant,
+                                                                color: Color(0xFF8858E1),
+                                                              ),
+                                                            ),
+                                                            helperText: ' ',
+                                                            helperStyle: const TextStyle(height: 1),
+                                                            errorStyle: const TextStyle(
+                                                              height: 1,
+                                                              color: Colors.redAccent,
+                                                            ),
+                                                            filled: true,
+                                                            fillColor: Colors.white,
+                                                            hintText: 'Username',
+                                                            errorText:
+                                                                _isUsernameInputValid ? null : 'Please enter username',
+                                                            prefixIcon: const Icon(
+                                                              FlutterIcons.share_sli,
+                                                              color: Color(0xFF8858E1),
+                                                            ),
+                                                            focusColor: const Color(0xFF8858E1),
+                                                            contentPadding: const EdgeInsets.only(
+                                                              left: 14.0,
+                                                              bottom: 8.0,
+                                                              top: 8.0,
+                                                            ),
+                                                            focusedBorder: OutlineInputBorder(
+                                                              borderSide: const BorderSide(color: Colors.white),
+                                                              borderRadius: BorderRadius.circular(30),
+                                                            ),
+                                                            enabledBorder: OutlineInputBorder(
+                                                              borderSide: const BorderSide(color: Colors.white),
+                                                              borderRadius: BorderRadius.circular(30),
+                                                            ),
+                                                            errorBorder: OutlineInputBorder(
+                                                              borderSide: const BorderSide(color: Colors.redAccent),
+                                                              borderRadius: BorderRadius.circular(30),
+                                                            ),
+                                                            focusedErrorBorder: OutlineInputBorder(
+                                                              borderSide: const BorderSide(color: Colors.redAccent),
+                                                              borderRadius: BorderRadius.circular(30),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    else
+                                                      Container()
                                                   ],
                                                 ),
                                               ),

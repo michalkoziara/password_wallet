@@ -1,13 +1,25 @@
 /// A class representing stored password.
 class Password {
   /// Creates password.
-  Password({this.id, this.userId, this.password, this.vector, this.webAddress, this.description, this.login});
+  Password({
+    this.id,
+    this.userId,
+    this.ownerPasswordId,
+    this.isSharedUpdated,
+    this.password,
+    this.vector,
+    this.webAddress,
+    this.description,
+    this.login,
+  });
 
   /// Creates password from map.
   factory Password.fromMap(Map<String, dynamic> data) {
     return Password(
       id: data['id'] as int,
       userId: data['userId'] as int,
+      ownerPasswordId: data['ownerPasswordId'] as int,
+      isSharedUpdated: data['isSharedUpdated'] == 'true',
       password: data['password'] as String,
       vector: data['vector'] as String,
       webAddress: data['webAddress'] as String,
@@ -21,6 +33,8 @@ class Password {
       : this(
           id: other.id,
           userId: other.userId,
+          ownerPasswordId: other.ownerPasswordId,
+          isSharedUpdated: other.isSharedUpdated,
           password: other.password,
           vector: other.vector,
           webAddress: other.webAddress,
@@ -33,6 +47,8 @@ class Password {
     return <String, dynamic>{
       'id': id,
       'userId': userId,
+      'ownerPasswordId': ownerPasswordId,
+      'isSharedUpdated': isSharedUpdated.toString(),
       'password': password,
       'vector': vector,
       'webAddress': webAddress,
@@ -46,6 +62,12 @@ class Password {
 
   /// The index of this user.
   int userId;
+
+  /// The index of related owner's password.
+  int ownerPasswordId;
+
+  /// The flag that indicated if shared password should be updated.
+  bool isSharedUpdated;
 
   /// The hash of this password.
   String password;

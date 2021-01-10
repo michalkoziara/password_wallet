@@ -1,7 +1,13 @@
 /// A class representing a user.
 class User {
   /// Creates user.
-  User({this.id, this.username, this.passwordHash, this.salt, this.isPasswordKeptAsHash});
+  User({
+    this.id,
+    this.username,
+    this.passwordHash,
+    this.salt,
+    this.isPasswordKeptAsHash,
+  });
 
   /// Creates user from map.
   factory User.fromMap(Map<String, dynamic> data) {

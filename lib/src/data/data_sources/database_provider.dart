@@ -49,13 +49,9 @@ class DatabaseProvider {
 
   /// Initialises database structure.
   Future<void> initializeDatabase(Database database, int version) async {
-    final String userTable = Constants.userTable;
-    final String passwordTable = Constants.passwordTable;
-    final String logTable = Constants.logTable;
-
     await database
         .execute(
-          'CREATE TABLE $userTable ('
+          'CREATE TABLE ${Constants.userTable} ('
           'id INTEGER PRIMARY KEY, '
           'username TEXT, '
           'passwordHash TEXT, '
@@ -66,26 +62,29 @@ class DatabaseProvider {
         .then(
           (_) async => await database
               .execute(
-                'CREATE TABLE $passwordTable ('
+                'CREATE TABLE ${Constants.passwordTable} ('
                 'id INTEGER PRIMARY KEY, '
                 'userId INTEGER, '
+                'ownerPasswordId INTEGER, '
+                'isSharedUpdated INTEGER, '
                 'password TEXT, '
                 'vector TEXT, '
                 'webAddress TEXT, '
                 'description TEXT, '
                 'login TEXT, '
-                'FOREIGN KEY (userId) REFERENCES user (id)'
+                'FOREIGN KEY (userId) REFERENCES ${Constants.userTable} (id), '
+                'FOREIGN KEY (ownerPasswordId) REFERENCES ${Constants.passwordTable} (id)'
                 ')',
               )
               .then((_) async => database.execute(
-                    'CREATE TABLE $logTable ('
+                    'CREATE TABLE ${Constants.logTable} ('
                     'id INTEGER PRIMARY KEY, '
                     'userId INTEGER, '
                     'isSuccessful INTEGER, '
                     'ipAddress TEXT, '
                     'isUnblocked INTEGER, '
                     'loginTime INTEGER, '
-                    'FOREIGN KEY (userId) REFERENCES user (id)'
+                    'FOREIGN KEY (userId) REFERENCES ${Constants.userTable} (id)'
                     ')',
                   )),
         );

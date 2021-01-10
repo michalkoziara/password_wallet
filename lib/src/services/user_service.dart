@@ -12,12 +12,13 @@ import '../repositories/repositories.dart';
 import '../utils/constants.dart';
 import '../utils/failure.dart';
 import '../utils/random_values_generator.dart';
+import 'password_service.dart';
 
 /// A user service layer.
 class UserService {
   /// Creates user service.
   UserService(this._userRepository, this._passwordRepository, this._logRepository, this._ipAddressRepository,
-      this._randomValuesGenerator,
+      this._randomValuesGenerator, this._passwordService,
       {Clock clock})
       : _clock = clock ?? const Clock();
 
@@ -26,6 +27,7 @@ class UserService {
   final LogRepository _logRepository;
   final IpAddressRepository _ipAddressRepository;
   final RandomValuesGenerator _randomValuesGenerator;
+  final PasswordService _passwordService;
   final Clock _clock;
 
   /// Validates user's credentials.
@@ -66,6 +68,31 @@ class UserService {
     final bool isLogCreated = await addLog(userId: user.id, isSuccessful: true, ipAddress: ipAddress);
     if (!isLogCreated) {
       return Left<Failure, void>(LogCreationFailure());
+    }
+
+    final List<Password> sharedPasswordsToUpdate =
+        await _passwordRepository.getPasswordsByUserIdAndUpdateStatus(user.id);
+
+    for (final Password passwordToUpdate in sharedPasswordsToUpdate) {
+      final Either<Failure, String> result = await _passwordService.getPassword(
+        id: passwordToUpdate.id,
+        userPassword: user.passwordHash,
+      );
+
+      final String textPassword = result.getOrElse(null);
+      if (textPassword == null) {
+        return Left<Failure, void>(LogCreationFailure());
+      }
+
+      passwordToUpdate.isSharedUpdated = false;
+      passwordToUpdate.password = textPassword;
+
+      final bool updateResult =
+          await _passwordService.updatePassword(password: passwordToUpdate, userPassword: password);
+
+      if (!updateResult) {
+        return Left<Failure, void>(LogCreationFailure());
+      }
     }
 
     return const Right<Failure, void>(null);
