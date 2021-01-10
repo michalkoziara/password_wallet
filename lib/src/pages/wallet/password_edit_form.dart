@@ -25,7 +25,7 @@ class PasswordEditForm extends StatefulWidget {
   final Password password;
 
   /// The callback to the parent widget.
-  final ValueChanged<bool> callback;
+  final ValueChanged<int> callback;
 
   @override
   _PasswordEditFormState createState() => _PasswordEditFormState();
@@ -54,8 +54,8 @@ class _PasswordEditFormState extends State<PasswordEditForm> {
           (Either<Failure, String> result) => result.fold(
             (Failure failure) => null,
             (String decryptedPassword) => _passwordController.text = decryptedPassword,
-      ),
-    );
+          ),
+        );
 
     _loginController.text = widget.password.login;
     _addressController.text = widget.password.webAddress;
@@ -76,7 +76,7 @@ class _PasswordEditFormState extends State<PasswordEditForm> {
                 icon: const Icon(FlutterIcons.back_ant, size: 60),
                 color: const Color(0xFFE1DFF8),
                 padding: const EdgeInsets.all(0),
-                onPressed: () => widget.callback(false),
+                onPressed: () => widget.callback(-1),
               ),
             ),
             const Spacer(),
@@ -132,22 +132,14 @@ class _PasswordEditFormState extends State<PasswordEditForm> {
                   CustomButton(
                     submitWhenPressed: () {
                       if (_formKey.currentState.validate()) {
-                        // BlocProvider.of<PasswordFormBloc>(context).add(
-                        //   PasswordFormEvent(
-                        //     username: widget.username,
-                        //     userPassword: widget.userPassword,
-                        //     login: _loginController?.text,
-                        //     password: _passwordController?.text,
-                        //     webAddress: _addressController?.text,
-                        //     description: _descriptionController?.text,
-                        //   ),
-                        // );
-                        //
-                        // BlocProvider.of<PasswordListBloc>(context).add(
-                        //   PasswordListOpenEvent(
-                        //     username: widget.username,
-                        //   ),
-                        // );
+                        widget.password.login = _loginController?.text;
+                        widget.password.password = _passwordController?.text;
+                        widget.password.webAddress = _addressController?.text;
+                        widget.password.description = _descriptionController?.text;
+
+                        RepositoryProvider.of<PasswordService>(context)
+                            .updatePassword(password: widget.password, userPassword: widget.userPassword)
+                            .then((bool result) => widget.callback(result ? 1 : 0));
                       }
                     },
                     child: const Text(

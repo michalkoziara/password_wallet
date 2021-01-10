@@ -157,4 +157,43 @@ class PasswordService {
   Future<bool> removePassword({@required int passwordId}) async {
     return await _passwordRepository.deletePasswordById(passwordId) > 0;
   }
+
+  /// Updates password by ID.
+  Future<bool> updatePassword({@required Password password, @required String userPassword}) async {
+    /// Creates bytes from text values.
+    final Uint8List passwordBytes = Uint8List.fromList(utf8.encode(password.password));
+    final Uint8List secretKeyBytes = Uint8List.fromList(utf8.encode(userPassword));
+    final Uint8List initializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
+
+    /// Hashes user password with MD5 algorithm.
+    final crypto.Digest secretKeyDigest = crypto.md5.convert(secretKeyBytes);
+    final Uint8List secretKeyDigestBytes = Uint8List.fromList(secretKeyDigest.bytes);
+
+    /// Creates AES in CBC mode with PKCS7 padding.
+    final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
+      PKCS7Padding(),
+      CBCBlockCipher(AESFastEngine()),
+    );
+
+    /// Initializes algorithm with secret key and initialization vector.
+    aesCipher.init(
+      true,
+      PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
+        ParametersWithIV<KeyParameter>(KeyParameter(secretKeyDigestBytes), initializationVectorBytes),
+        null,
+      ),
+    );
+
+    /// Encrypts password.
+    final Uint8List encryptedPasswordBytes = aesCipher.process(passwordBytes);
+
+    /// Creates text from bytes.
+    final String encryptedPassword = base64.encode(encryptedPasswordBytes);
+    final String initializationVector = base64.encode(initializationVectorBytes);
+
+    password.password = encryptedPassword;
+    password.vector = initializationVector;
+
+    return await _passwordRepository.updatePassword(password) > 0;
+  }
 }

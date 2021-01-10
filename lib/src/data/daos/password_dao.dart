@@ -17,8 +17,12 @@ class PasswordDao {
   Future<List<Password>> getPasswordsByUserId({List<String> columns, int userId}) async {
     final Database database = await _databaseProvider.database;
 
-    final List<Map<String, dynamic>> result =
-        await database.query(Constants.passwordTable, columns: columns, where: 'userId = ?', whereArgs: <int>[userId]);
+    final List<Map<String, dynamic>> result = await database.query(
+      Constants.passwordTable,
+      columns: columns,
+      where: 'userId = ?',
+      whereArgs: <int>[userId],
+    );
 
     final List<Password> passwords = result.isNotEmpty
         ? result.map((Map<String, dynamic> password) => Password.fromMap(password)).toList()
@@ -31,8 +35,12 @@ class PasswordDao {
   Future<Password> getPasswordById({List<String> columns, int id}) async {
     final Database database = await _databaseProvider.database;
 
-    final List<Map<String, dynamic>> result =
-        await database.query(Constants.passwordTable, columns: columns, where: 'id = ?', whereArgs: <int>[id]);
+    final List<Map<String, dynamic>> result = await database.query(
+      Constants.passwordTable,
+      columns: columns,
+      where: 'id = ?',
+      whereArgs: <int>[id],
+    );
 
     final List<Password> passwords = result.isNotEmpty
         ? result.map((Map<String, dynamic> password) => Password.fromMap(password)).toList()
@@ -46,7 +54,10 @@ class PasswordDao {
   Future<int> createPassword(Password password) async {
     final Database database = await _databaseProvider.database;
 
-    final int result = await database.insert(Constants.passwordTable, password.toMap());
+    final int result = await database.insert(
+      Constants.passwordTable,
+      password.toMap(),
+    );
 
     return result;
   }
@@ -58,10 +69,29 @@ class PasswordDao {
     final Batch batch = database.batch();
 
     for (final Password password in passwords) {
-      batch.update(Constants.passwordTable, password.toMap(), where: 'id = ?', whereArgs: <int>[password.id]);
+      batch.update(
+        Constants.passwordTable,
+        password.toMap(),
+        where: 'id = ?',
+        whereArgs: <int>[password.id],
+      );
     }
 
     final List<dynamic> result = await batch.commit();
+    return result;
+  }
+
+  /// Updates password based on ID.
+  Future<int> updatePassword(Password password) async {
+    final Database database = await _databaseProvider.database;
+
+    final int result = await database.update(
+      Constants.passwordTable,
+      password.toMap(),
+      where: 'id = ?',
+      whereArgs: <int>[password.id],
+    );
+
     return result;
   }
 
@@ -69,7 +99,11 @@ class PasswordDao {
   Future<int> deletePasswordById({List<String> columns, int id}) async {
     final Database database = await _databaseProvider.database;
 
-    final int result = await database.delete(Constants.passwordTable, where: 'id = ?', whereArgs: <int>[id]);
+    final int result = await database.delete(
+      Constants.passwordTable,
+      where: 'id = ?',
+      whereArgs: <int>[id],
+    );
 
     return result;
   }

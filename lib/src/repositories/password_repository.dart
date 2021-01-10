@@ -12,7 +12,7 @@ class PasswordRepository {
   /// Gets passwords with given user ID.
   Future<List<Password>> getPasswordsByUserId(int userId) => _passwordDao.getPasswordsByUserId(userId: userId);
 
-  /// Gets passwords with ID.
+  /// Gets password with given ID.
   Future<Password> getPasswordById(int id) => _passwordDao.getPasswordById(id: id);
 
   /// Creates password.
@@ -23,4 +23,7 @@ class PasswordRepository {
 
   /// Deletes password with given ID.
   Future<int> deletePasswordById(int id) => _passwordDao.deletePasswordById(id: id);
+
+  /// Updates password.
+  Future<int> updatePassword(Password password) => _passwordDao.updatePassword(password);
 }

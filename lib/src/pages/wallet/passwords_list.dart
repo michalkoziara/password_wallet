@@ -23,12 +23,14 @@ class PasswordsList extends StatefulWidget {
 }
 
 class _PasswordsListState extends State<PasswordsList> {
-  bool isFormOpened = false;
+  bool isFormOpened;
   Password editedPassword;
 
   @override
   void initState() {
     super.initState();
+
+    isFormOpened = false;
 
     BlocProvider.of<PasswordListBloc>(context).add(
       PasswordListOpenEvent(
@@ -44,8 +46,34 @@ class _PasswordsListState extends State<PasswordsList> {
             username: widget.username,
             userPassword: widget.password,
             password: editedPassword,
-            callback: (_) => setState(() {
+            callback: (int result) => setState(() {
               isFormOpened = false;
+
+              if (result == 0) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    margin: const EdgeInsets.only(bottom: 32, left: 30, right: 30),
+                    content: const Text('Could not update password, please try again!'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+
+              if (result == 1) {
+                BlocProvider.of<PasswordListBloc>(context).add(
+                  PasswordListOpenEvent(
+                    username: widget.username,
+                  ),
+                );
+
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    margin: const EdgeInsets.only(bottom: 32, left: 30, right: 30),
+                    content: const Text('Updated password'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             }),
           )
         : BlocBuilder<PasswordListBloc, PasswordListState>(
