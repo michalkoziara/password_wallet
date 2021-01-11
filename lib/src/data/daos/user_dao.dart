@@ -30,6 +30,23 @@ class UserDao {
     return user;
   }
 
+  /// Returns user based on ID.
+  Future<User> getUserById({List<String> columns, int userId}) async {
+    final Database database = await _databaseProvider.database;
+
+    List<Map<String, dynamic>> result;
+    if (userId != null) {
+      result = await database
+          .query(Constants.userTable, columns: columns, where: 'id = ?', whereArgs: <int>[userId]);
+    }
+
+    final List<User> users =
+    result.isNotEmpty ? result.map((Map<String, dynamic> user) => User.fromMap(user)).toList() : <User>[];
+    final User user = users.isNotEmpty ? users[0] : null;
+
+    return user;
+  }
+
   /// Creates user.
   Future<int> createUser(User user) async {
     final Database database = await _databaseProvider.database;

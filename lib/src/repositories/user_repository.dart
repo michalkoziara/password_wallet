@@ -12,6 +12,9 @@ class UserRepository {
   /// Gets user with given username.
   Future<User> getUserByUsername(String username) => _userDao.getUserByUsername(username: username);
 
+  /// Gets user with given ID.
+  Future<User> getUserById(int userId) => _userDao.getUserById(userId: userId);
+
   /// Creates user.
   Future<int> createUser(User user) => _userDao.createUser(user);
 

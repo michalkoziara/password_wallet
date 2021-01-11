@@ -155,13 +155,22 @@ class PasswordService {
 
   /// Removes password with given ID.
   Future<bool> removePassword({@required int passwordId}) async {
+    final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(passwordId);
+    for (final Password sharedPassword in sharedPasswords) {
+      if (await _passwordRepository.deletePasswordById(sharedPassword.id) == -1) {
+        return false;
+      }
+    }
+
     return await _passwordRepository.deletePasswordById(passwordId) > 0;
   }
 
   /// Updates password by ID.
   Future<bool> updatePassword({@required Password password, @required String userPassword}) async {
+    final String updatedPasswordValue = password.password;
+
     /// Creates bytes from text values.
-    final Uint8List passwordBytes = Uint8List.fromList(utf8.encode(password.password));
+    final Uint8List passwordBytes = Uint8List.fromList(utf8.encode(updatedPasswordValue));
     final Uint8List secretKeyBytes = Uint8List.fromList(utf8.encode(userPassword));
     final Uint8List initializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
 
@@ -194,6 +203,53 @@ class PasswordService {
     password.password = encryptedPassword;
     password.vector = initializationVector;
 
+    final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(password.id);
+    for (final Password sharedPassword in sharedPasswords) {
+      final User user = await _userRepository.getUserById(sharedPassword.userId);
+
+      if (user == null) {
+        return false;
+      }
+
+      /// Creates bytes from text values.
+      final Uint8List sharedSecretKeyBytes = Uint8List.fromList(utf8.encode(user.passwordHash));
+      final Uint8List sharedInitializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
+
+      /// Hashes user password with MD5 algorithm.
+      final crypto.Digest sharedSecretKeyDigest = crypto.md5.convert(sharedSecretKeyBytes);
+      final Uint8List sharedSecretKeyDigestBytes = Uint8List.fromList(sharedSecretKeyDigest.bytes);
+
+      /// Creates AES in CBC mode with PKCS7 padding.
+      final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
+        PKCS7Padding(),
+        CBCBlockCipher(AESFastEngine()),
+      );
+
+      /// Initializes algorithm with secret key and initialization vector.
+      aesCipher.init(
+        true,
+        PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
+          ParametersWithIV<KeyParameter>(KeyParameter(sharedSecretKeyDigestBytes), sharedInitializationVectorBytes),
+          null,
+        ),
+      );
+
+      /// Encrypts password.
+      final Uint8List encryptedSharedPasswordBytes = aesCipher.process(passwordBytes);
+
+      /// Creates text from bytes.
+      final String encryptedSharedPassword = base64.encode(encryptedSharedPasswordBytes);
+      final String sharedInitializationVector = base64.encode(sharedInitializationVectorBytes);
+
+      sharedPassword.password = encryptedSharedPassword;
+      sharedPassword.vector = sharedInitializationVector;
+      sharedPassword.isSharedUpdated = true;
+
+      if (await _passwordRepository.updatePassword(sharedPassword) == -1) {
+        return false;
+      }
+    }
+
     return await _passwordRepository.updatePassword(password) > 0;
   }
 
@@ -204,6 +260,19 @@ class PasswordService {
 
     if (user == null) {
       return false;
+    }
+
+    final List<Password> ownedPasswords = await _passwordRepository.getPasswordsByUserId(user.id);
+    if (ownedPasswords.isNotEmpty) {
+      final List<Password> alreadySharedPasswords = ownedPasswords
+          .where(
+            (Password ownedPassword) => ownedPassword.ownerPasswordId == password.id,
+          )
+          .toList();
+
+      if (alreadySharedPasswords.isNotEmpty) {
+        return false;
+      }
     }
 
     final Either<Failure, String> result = await getPassword(id: password.id, userPassword: ownerPassword);

@@ -28,5 +28,10 @@ class PasswordRepository {
   Future<int> updatePassword(Password password) => _passwordDao.updatePassword(password);
 
   /// Gets passwords with given user ID that need update.
-  Future<List<Password>> getPasswordsByUserIdAndUpdateStatus(int userId) => _passwordDao.getPasswordsByUserIdAndUpdateStatus(userId: userId);
+  Future<List<Password>> getPasswordsByUserIdAndUpdateStatus(int userId) =>
+      _passwordDao.getPasswordsByUserIdAndUpdateStatus(userId: userId);
+
+  /// Gets passwords by owner password's ID.
+  Future<List<Password>> getPasswordsByOwnerPasswordId(int ownerPasswordId) =>
+      _passwordDao.getPasswordsByOwnerPasswordId(ownerPasswordId: ownerPasswordId);
 }

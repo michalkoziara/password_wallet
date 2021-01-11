@@ -49,6 +49,24 @@ class PasswordDao {
     return passwords;
   }
 
+  /// Returns passwords based on owner password's ID.
+  Future<List<Password>> getPasswordsByOwnerPasswordId({List<String> columns, int ownerPasswordId}) async {
+    final Database database = await _databaseProvider.database;
+
+    final List<Map<String, dynamic>> result = await database.query(
+      Constants.passwordTable,
+      columns: columns,
+      where: 'ownerPasswordId = ?',
+      whereArgs: <int>[ownerPasswordId],
+    );
+
+    final List<Password> passwords = result.isNotEmpty
+        ? result.map((Map<String, dynamic> password) => Password.fromMap(password)).toList()
+        : <Password>[];
+
+    return passwords;
+  }
+
   /// Returns password based on ID.
   Future<Password> getPasswordById({List<String> columns, int id}) async {
     final Database database = await _databaseProvider.database;
