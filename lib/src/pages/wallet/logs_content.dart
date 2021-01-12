@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 import 'actions_list.dart';
+import 'data_changes_list.dart';
 import 'logs_list.dart';
 
 /// A list of logs.
 class LogsContent extends StatefulWidget {
   /// Creates the log list.
-  const LogsContent({@required this.username});
+  const LogsContent({@required this.username, @required this.userPassword});
 
   /// The username of user that is signed in.
   final String username;
+
+  /// The password of user that is signed in.
+  final String userPassword;
 
   @override
   _LogsContentState createState() => _LogsContentState();
@@ -19,6 +23,7 @@ class LogsContent extends StatefulWidget {
 class _LogsContentState extends State<LogsContent> {
   int _contentIndex = 0;
   List<String> contentLabels = <String>['Login Logs', 'Activity Logs'];
+  int _passwordId = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +36,31 @@ class _LogsContentState extends State<LogsContent> {
                 case 0:
                   return LogsList(username: widget.username);
                 case 1:
-                  return ActionsList(username: widget.username);
+                  return ActionsList(
+                    username: widget.username,
+                    callback: (int passwordId) {
+                      setState(() {
+                        _passwordId = passwordId;
+
+                        if (passwordId != null) {
+                          if (!contentLabels.contains('Data Changes')) {
+                            contentLabels.add('Data Changes');
+                          }
+                          _contentIndex = 2;
+                        } else {
+                          contentLabels.remove('Data Changes');
+                        }
+                      });
+                    },
+                  );
                 case 2:
-                  return Container();
+                  return _passwordId != -1
+                      ? DataChangesList(
+                          username: widget.username,
+                          userPassword: widget.userPassword,
+                          passwordId: _passwordId,
+                        )
+                      : Container();
                 default:
                   return Container();
               }
@@ -57,15 +84,7 @@ class _LogsContentState extends State<LogsContent> {
                 labels: contentLabels,
                 iconSize: 30.0,
                 onToggle: (int index) {
-                  setState(() {
-                    _contentIndex = index;
-
-                    if (index == 1) {
-                      contentLabels.add('Data Changes');
-                    } else {
-                      contentLabels.remove('Data Changes');
-                    }
-                  });
+                  setState(() => _contentIndex = index);
                 },
               ),
             ],

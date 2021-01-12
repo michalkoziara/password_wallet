@@ -3,31 +3,41 @@ import 'package:meta/meta.dart';
 
 import '../data/models/models.dart';
 import '../repositories/data_change_repository.dart';
-import '../repositories/password_repository.dart';
 import '../repositories/repositories.dart';
 import '../utils/activity_type.dart';
 
 /// A data change service layer.
 class DataChangeService {
   /// Creates the data change service.
-  DataChangeService(this._dataChangeRepository, this._userRepository, this._passwordRepository, {Clock clock})
+  DataChangeService(this._dataChangeRepository, this._userRepository, {Clock clock})
       : _clock = clock ?? const Clock();
 
   final DataChangeRepository _dataChangeRepository;
   final UserRepository _userRepository;
-  final PasswordRepository _passwordRepository;
 
   final Clock _clock;
 
   /// Creates new data change.
-  Future<bool> createDataChange(
-      {@required ActivityType activityType,
-      @required int userId,
-      @required int passwordAfterChangeId,
-      @required int passwordBeforeChangeId}) async {
-    final int millisecondsSinceEpoch = _clock.now().millisecondsSinceEpoch;
+  Future<bool> createDataChange({@required ActivityType activityType,
+    @required int userId,
+    @required int passwordAfterChangeId,
+    @required int passwordBeforeChangeId}) async {
+    final int millisecondsSinceEpoch = _clock
+        .now()
+        .millisecondsSinceEpoch;
 
-    final int result = await _dataChangeRepository.createDataChange(
+    if (passwordBeforeChangeId != null) {
+      final List<DataChange> dataChanges = await _dataChangeRepository.getDataChangesByPasswordId(passwordBeforeChangeId);
+      for (final DataChange dataChange in dataChanges) {
+        dataChange.passwordId = passwordAfterChangeId;
+
+        if (await _dataChangeRepository.updateDataChange(dataChange) == -1) {
+          return false;
+        }
+      }
+    }
+
+    final int createdDataChangeId = await _dataChangeRepository.createDataChange(
       DataChange(
         userId: userId,
         passwordId: passwordAfterChangeId,
@@ -38,7 +48,7 @@ class DataChangeService {
       ),
     );
 
-    return result > 0;
+    return createdDataChangeId > 0;
   }
 
   /// Gets user data changes.
@@ -52,5 +62,10 @@ class DataChangeService {
     final List<DataChange> userDataChanges = await _dataChangeRepository.getDataChangesByUserId(user.id);
 
     return userDataChanges;
+  }
+
+  /// Gets password data changes.
+  Future<List<DataChange>> getPasswordChanges({@required int passwordId}) async {
+    return await _dataChangeRepository.getDataChangesByPasswordId(passwordId);
   }
 }

@@ -34,6 +34,9 @@ class DatabaseProvider {
       onCreate: initializeDatabase,
       onUpgrade: upgradeDatabase,
     );
+
+    database.execute('PRAGMA journal_mode=TRUNCATE');
+
     return database;
   }
 

@@ -100,14 +100,9 @@ class Password {
 
   @override
   String toString() {
-    return 'Password{'
-        'id: $id, '
-        'userId: $userId, '
-        'password: $password, '
-        'vector: $vector, '
-        'webAddress: $webAddress, '
-        'description: $description, '
-        'login: $login'
-        '}';
+    return '${password.substring(0, 5)}\n'
+        '$webAddress\n'
+        '$login\n'
+        '$description';
   }
 }

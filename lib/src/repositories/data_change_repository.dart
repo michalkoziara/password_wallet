@@ -10,8 +10,15 @@ class DataChangeRepository {
   final DataChangeDao _dataChangeDao;
 
   /// Gets data changes with given user ID.
-  Future<List<DataChange>> getDataChangesByUserId(int userId) => _dataChangeDao.getDataChangeByUserId(userId: userId);
+  Future<List<DataChange>> getDataChangesByUserId(int userId) => _dataChangeDao.getDataChangesByUserId(userId: userId);
+
+  /// Gets data changes with given password ID.
+  Future<List<DataChange>> getDataChangesByPasswordId(int passwordId) =>
+      _dataChangeDao.getDataChangesByPasswordId(passwordId: passwordId);
 
   /// Creates data change.
   Future<int> createDataChange(DataChange dataChange) => _dataChangeDao.createDataChange(dataChange);
+
+  /// Updates data change.
+  Future<int> updateDataChange(DataChange dataChange) => _dataChangeDao.updateDataChange(dataChange);
 }

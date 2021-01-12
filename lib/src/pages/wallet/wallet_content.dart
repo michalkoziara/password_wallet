@@ -43,7 +43,10 @@ class WalletContent extends StatelessWidget {
           );
 
         case 3:
-          return LogsContent(username: username);
+          return LogsContent(
+            username: username,
+            userPassword: password,
+          );
 
         case 4:
           return AddressesList(username: username);

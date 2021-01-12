@@ -174,7 +174,6 @@ class ServiceProviders extends StatelessWidget {
     return DataChangeService(
       RepositoryProvider.of<DataChangeRepository>(context),
       RepositoryProvider.of<UserRepository>(context),
-      RepositoryProvider.of<PasswordRepository>(context),
     );
   }
 }

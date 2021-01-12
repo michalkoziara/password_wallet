@@ -2,6 +2,7 @@ import 'package:chips_choice/chips_choice.dart';
 import 'package:dartz/dartz.dart' show Either;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../data/models/data_change.dart';
 import '../../data/models/models.dart';
@@ -13,10 +14,13 @@ import '../../utils/string_extension.dart';
 /// A list containing historical user activities.
 class ActionsList extends StatefulWidget {
   /// Creates the activities list.
-  const ActionsList({@required this.username});
+  const ActionsList({@required this.username, @required this.callback});
 
   /// The username of user that is signed in.
   final String username;
+
+  /// The callback to the parent widget.
+  final ValueChanged<int> callback;
 
   @override
   _ActionsListState createState() => _ActionsListState();
@@ -30,6 +34,7 @@ class _ActionsListState extends State<ActionsList> {
     'Delete',
     'Restore',
   ];
+
   List<String> _selectedOptions = <String>[
     'View',
     'Create',
@@ -38,6 +43,8 @@ class _ActionsListState extends State<ActionsList> {
     'Restore',
   ];
 
+  SlidableController _slidableController;
+
   List<DataChange> _dataChanges = <DataChange>[];
   List<DataChange> _displayedDataChanges = <DataChange>[];
   List<Password> _passwords = <Password>[];
@@ -45,6 +52,10 @@ class _ActionsListState extends State<ActionsList> {
   @override
   void initState() {
     super.initState();
+
+    _slidableController = SlidableController(
+      onSlideIsOpenChanged: (bool isOpened) => !isOpened ? widget.callback(-1) : null,
+    );
 
     RepositoryProvider.of<DataChangeService>(context).getUserDataChanges(username: widget.username).then(
       (List<DataChange> dataChanges) {
@@ -137,28 +148,61 @@ class _ActionsListState extends State<ActionsList> {
                           child: ListView.separated(
                             itemBuilder: (_, int index) => Column(
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 10, right: 25),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Text(
-                                        _getDateFromMilliseconds(_displayedDataChanges[index].changeTime),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Text(
-                                        _getPasswordDetailsByIndex(index),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(
-                                        width: 43,
-                                        child: Text(
-                                          _displayedDataChanges[index].actionType.capitalize(),
+                                Slidable(
+                                  closeOnScroll: true,
+                                  controller: _slidableController,
+                                  actionExtentRatio: 0.25,
+                                  actionPane: const SlidableScrollActionPane(),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 10, right: 25),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Text(
+                                          _getDateFromMilliseconds(_displayedDataChanges[index].changeTime),
                                           textAlign: TextAlign.center,
                                         ),
-                                      ),
-                                    ],
+                                        Text(
+                                          _getPasswordDetailsByIndex(index),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        SizedBox(
+                                          width: 45,
+                                          child: Text(
+                                            _displayedDataChanges[index].actionType.capitalize(),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  secondaryActions: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 3.0),
+                                      child: FlatButton(
+                                        onPressed: () => widget.callback(
+                                          _getRelatedPassword(_displayedDataChanges[index]).id,
+                                        ),
+                                        color: Colors.deepPurpleAccent,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: const <Widget>[
+                                            Icon(
+                                              Icons.archive,
+                                              color: Colors.white,
+                                            ),
+                                            Spacer(),
+                                            Text(
+                                              'Data',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 )
                               ],
                             ),
@@ -188,14 +232,23 @@ class _ActionsListState extends State<ActionsList> {
     return '${date.toString().substring(0, 10)}\n${date.toString().substring(11, 19)}';
   }
 
-  String _getPasswordDetailsByIndex(int index) {
-    final List<Password> detailedPasswords =
-        _passwords.where((Password password) => password.id == _displayedDataChanges[index].passwordId).toList();
+  Password _getRelatedPassword(DataChange dataChange) {
+    final List<Password> relatedPasswords =
+        _passwords.where((Password password) => password.id == dataChange.passwordId).toList();
 
-    if (detailedPasswords.isEmpty) {
+    if (relatedPasswords.isEmpty) {
+      return null;
+    }
+
+    return relatedPasswords[0];
+  }
+
+  String _getPasswordDetailsByIndex(int index) {
+    final Password relatedPassword = _getRelatedPassword(_displayedDataChanges[index]);
+    if (relatedPassword == null) {
       return '';
     }
 
-    return '${detailedPasswords[0].webAddress}\n${detailedPasswords[0].login}';
+    return '${relatedPassword.webAddress}\n${relatedPassword.login}';
   }
 }
