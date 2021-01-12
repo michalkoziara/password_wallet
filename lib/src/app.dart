@@ -4,7 +4,9 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 import 'blocs/blocs.dart' show RegistrationBloc, PasswordFormBloc, ProfileFormBloc, PasswordListBloc;
 import 'pages/login/login_page.dart';
+import 'repositories/data_change_repository.dart';
 import 'repositories/repositories.dart';
+import 'services/data_change_service.dart';
 import 'services/services.dart';
 import 'utils/constants.dart';
 import 'utils/random_values_generator.dart';
@@ -95,7 +97,10 @@ class RepositoryProviders extends StatelessWidget {
           create: _logRepositoryBuilder,
           child: RepositoryProvider<IpAddressRepository>(
             create: _ipAddressRepositoryBuilder,
-            child: child,
+            child: RepositoryProvider<DataChangeRepository>(
+              create: _dataChangeRepositoryBuilder,
+              child: child,
+            ),
           ),
         ),
       ),
@@ -117,6 +122,10 @@ class RepositoryProviders extends StatelessWidget {
   IpAddressRepository _ipAddressRepositoryBuilder(BuildContext context) {
     return IpAddressRepository();
   }
+
+  DataChangeRepository _dataChangeRepositoryBuilder(BuildContext context) {
+    return DataChangeRepository();
+  }
 }
 
 /// A helper class that injects services into widget tree.
@@ -129,30 +138,43 @@ class ServiceProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<PasswordService>(
-      create: _passwordServiceBuilder,
-      child: RepositoryProvider<UserService>(
-        create: _userServiceBuilder,
-        child: child,
+    return RepositoryProvider<DataChangeService>(
+      create: _dataChangeServiceBuilder,
+      child: RepositoryProvider<PasswordService>(
+        create: _passwordServiceBuilder,
+        child: RepositoryProvider<UserService>(
+          create: _userServiceBuilder,
+          child: child,
+        ),
       ),
     );
   }
 
   UserService _userServiceBuilder(BuildContext context) {
     return UserService(
-        RepositoryProvider.of<UserRepository>(context),
-        RepositoryProvider.of<PasswordRepository>(context),
-        RepositoryProvider.of<LogRepository>(context),
-        RepositoryProvider.of<IpAddressRepository>(context),
-        RandomValuesGenerator(),
-        RepositoryProvider.of<PasswordService>(context));
+      RepositoryProvider.of<UserRepository>(context),
+      RepositoryProvider.of<PasswordRepository>(context),
+      RepositoryProvider.of<LogRepository>(context),
+      RepositoryProvider.of<IpAddressRepository>(context),
+      RepositoryProvider.of<PasswordService>(context),
+      RandomValuesGenerator(),
+    );
   }
 
   PasswordService _passwordServiceBuilder(BuildContext context) {
     return PasswordService(
       RepositoryProvider.of<PasswordRepository>(context),
       RepositoryProvider.of<UserRepository>(context),
+      RepositoryProvider.of<DataChangeService>(context),
       RandomValuesGenerator(),
+    );
+  }
+
+  DataChangeService _dataChangeServiceBuilder(BuildContext context) {
+    return DataChangeService(
+      RepositoryProvider.of<DataChangeRepository>(context),
+      RepositoryProvider.of<UserRepository>(context),
+      RepositoryProvider.of<PasswordRepository>(context),
     );
   }
 }

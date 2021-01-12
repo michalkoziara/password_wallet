@@ -291,7 +291,7 @@ class _PasswordsListState extends State<PasswordsList> {
                                                                       _isShareButtonActive = false;
 
                                                                       RepositoryProvider.of<PasswordService>(context)
-                                                                          .removePassword(passwordId: password.id)
+                                                                          .removePassword(password: password)
                                                                           .then((bool result) {
                                                                         if (result) {
                                                                           BlocProvider.of<PasswordListBloc>(context)

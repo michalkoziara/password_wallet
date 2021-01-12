@@ -6,6 +6,8 @@ class Password {
     this.userId,
     this.ownerPasswordId,
     this.isSharedUpdated,
+    this.isArchived,
+    this.isDeleted,
     this.password,
     this.vector,
     this.webAddress,
@@ -20,6 +22,8 @@ class Password {
       userId: data['userId'] as int,
       ownerPasswordId: data['ownerPasswordId'] as int,
       isSharedUpdated: data['isSharedUpdated'] == 'true',
+      isArchived: data['isArchived'] == 'true',
+      isDeleted: data['isDeleted'] == 'true',
       password: data['password'] as String,
       vector: data['vector'] as String,
       webAddress: data['webAddress'] as String,
@@ -35,6 +39,8 @@ class Password {
           userId: other.userId,
           ownerPasswordId: other.ownerPasswordId,
           isSharedUpdated: other.isSharedUpdated,
+          isArchived: other.isArchived,
+          isDeleted: other.isDeleted,
           password: other.password,
           vector: other.vector,
           webAddress: other.webAddress,
@@ -49,6 +55,8 @@ class Password {
       'userId': userId,
       'ownerPasswordId': ownerPasswordId,
       'isSharedUpdated': isSharedUpdated.toString(),
+      'isArchived': isArchived.toString(),
+      'isDeleted': isDeleted.toString(),
       'password': password,
       'vector': vector,
       'webAddress': webAddress,
@@ -57,10 +65,10 @@ class Password {
     };
   }
 
-  /// The index of this user.
+  /// The index of this password.
   int id;
 
-  /// The index of this user.
+  /// The index of related user.
   int userId;
 
   /// The index of related owner's password.
@@ -68,6 +76,12 @@ class Password {
 
   /// The flag that indicated if shared password should be updated.
   bool isSharedUpdated;
+
+  /// The flag that indicated if password is archived.
+  bool isArchived;
+
+  /// The flag that indicated if password is deleted.
+  bool isDeleted;
 
   /// The hash of this password.
   String password;

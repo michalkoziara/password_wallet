@@ -38,10 +38,10 @@ class Log {
     };
   }
 
-  /// The index of this user.
+  /// The index of this log.
   int id;
 
-  /// The index of this user.
+  /// The index of related user.
   int userId;
 
   /// The flag that indicates if a login was successful.
@@ -58,7 +58,7 @@ class Log {
 
   @override
   String toString() {
-    return 'Password{'
+    return 'Log{'
         'id: $id, '
         'userId: $userId, '
         'isSuccessful: $isSuccessful, '

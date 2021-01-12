@@ -138,7 +138,11 @@ class _PasswordEditFormState extends State<PasswordEditForm> {
                         widget.password.description = _descriptionController?.text;
 
                         RepositoryProvider.of<PasswordService>(context)
-                            .updatePassword(password: widget.password, userPassword: widget.userPassword)
+                            .updatePassword(
+                              password: widget.password,
+                              userPassword: widget.userPassword,
+                              isRegistered: true,
+                            )
                             .then((bool result) => widget.callback(result ? 1 : 0));
                       }
                     },

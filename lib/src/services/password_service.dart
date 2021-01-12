@@ -6,18 +6,23 @@ import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:pointycastle/export.dart';
 
-import '../data/models/models.dart' show Password, User;
+import '../data/models/models.dart' show DataChange, Password, User;
 import '../repositories/repositories.dart' show PasswordRepository, UserRepository;
+import '../utils/activity_type.dart';
 import '../utils/failure.dart';
 import '../utils/random_values_generator.dart';
+import 'data_change_service.dart';
 
 /// A password service layer.
 class PasswordService {
   /// Creates password service.
-  PasswordService(this._passwordRepository, this._userRepository, this._randomValuesGenerator);
+  PasswordService(this._passwordRepository, this._userRepository, this._dataChangeService, this._randomValuesGenerator);
 
   final PasswordRepository _passwordRepository;
   final UserRepository _userRepository;
+
+  final DataChangeService _dataChangeService;
+
   final RandomValuesGenerator _randomValuesGenerator;
 
   /// Adds new password to wallet.
@@ -27,7 +32,8 @@ class PasswordService {
       @required String password,
       @required String description,
       @required String username,
-      @required String userPassword}) async {
+      @required String userPassword,
+      bool isRegistered = false}) async {
     final User user = await _userRepository.getUserByUsername(username);
 
     /// Checks if user with given username exists.
@@ -46,9 +52,18 @@ class PasswordService {
     );
 
     /// Saves password data in the database.
-    final int result = await _passwordRepository.createPassword(newPassword);
-    if (result == -1) {
+    final int newPasswordId = await _passwordRepository.createPassword(newPassword);
+    if (newPasswordId == -1) {
       return Left<Failure, void>(PasswordCreationFailure());
+    }
+
+    if (isRegistered) {
+      await _dataChangeService.createDataChange(
+        activityType: ActivityType.create,
+        userId: user.id,
+        passwordBeforeChangeId: null,
+        passwordAfterChangeId: newPasswordId,
+      );
     }
 
     return const Right<Failure, void>(null);
@@ -66,8 +81,23 @@ class PasswordService {
     return Right<Failure, List<Password>>(passwords);
   }
 
+  /// Gets active user's passwords from wallet.
+  Future<Either<Failure, List<Password>>> getActivePasswords({@required String username}) async {
+    final User user = await _userRepository.getUserByUsername(username);
+
+    if (user == null) {
+      return Left<Failure, List<Password>>(NonExistentUserFailure());
+    }
+
+    List<Password> passwords = await _passwordRepository.getPasswordsByUserId(user.id);
+    passwords = passwords.where((Password password) => !password.isArchived && !password.isDeleted).toList();
+
+    return Right<Failure, List<Password>>(passwords);
+  }
+
   /// Gets user's password from wallet.
-  Future<Either<Failure, String>> getPassword({@required int id, @required String userPassword}) async {
+  Future<Either<Failure, String>> getPassword(
+      {@required int id, @required String userPassword, bool isRegistered = false}) async {
     final Password password = await _passwordRepository.getPasswordById(id);
 
     if (password == null) {
@@ -97,6 +127,15 @@ class PasswordService {
     final Uint8List decryptedPasswordBytes = aesCipher.process(passwordBytes);
 
     final String decryptedPassword = utf8.decode(decryptedPasswordBytes);
+
+    if (isRegistered) {
+      await _dataChangeService.createDataChange(
+        activityType: ActivityType.view,
+        userId: password.userId,
+        passwordBeforeChangeId: password.id,
+        passwordAfterChangeId: password.id,
+      );
+    }
 
     return Right<Failure, String>(decryptedPassword);
   }
@@ -153,20 +192,57 @@ class PasswordService {
     return newPassword;
   }
 
-  /// Removes password with given ID.
-  Future<bool> removePassword({@required int passwordId}) async {
-    final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(passwordId);
+  /// Removes password from wallet.
+  Future<bool> removePassword({@required Password password}) async {
+    final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(password.id);
     for (final Password sharedPassword in sharedPasswords) {
-      if (await _passwordRepository.deletePasswordById(sharedPassword.id) == -1) {
+      sharedPassword.isDeleted = true;
+      final int deletedSharedPasswordId = await recreatePasswordWithChanges(sharedPassword);
+
+      if (deletedSharedPasswordId == -1) {
+        return false;
+      }
+
+      if (!await _dataChangeService.createDataChange(
+        activityType: ActivityType.delete,
+        userId: sharedPassword.userId,
+        passwordBeforeChangeId: sharedPassword.id,
+        passwordAfterChangeId: deletedSharedPasswordId,
+      )) {
         return false;
       }
     }
 
-    return await _passwordRepository.deletePasswordById(passwordId) > 0;
+    password.isDeleted = true;
+    final int deletedPasswordId = await recreatePasswordWithChanges(password);
+
+    if (!await _dataChangeService.createDataChange(
+      activityType: ActivityType.delete,
+      userId: password.userId,
+      passwordBeforeChangeId: password.id,
+      passwordAfterChangeId: deletedPasswordId,
+    )) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Archives old password and creates a new one with given changes.
+  Future<int> recreatePasswordWithChanges(Password changedPassword) async {
+    final Password oldPassword = await _passwordRepository.getPasswordById(changedPassword.id);
+    oldPassword.isArchived = true;
+    if (await _passwordRepository.updatePassword(oldPassword) == -1) {
+      return -1;
+    }
+
+    changedPassword.id = null;
+    return _passwordRepository.createPassword(changedPassword);
   }
 
   /// Updates password by ID.
-  Future<bool> updatePassword({@required Password password, @required String userPassword}) async {
+  Future<bool> updatePassword(
+      {@required Password password, @required String userPassword, bool isRegistered = false}) async {
     final String updatedPasswordValue = password.password;
 
     /// Creates bytes from text values.
@@ -202,6 +278,29 @@ class PasswordService {
 
     password.password = encryptedPassword;
     password.vector = initializationVector;
+
+    int updatedPasswordId;
+    if (isRegistered) {
+      updatedPasswordId = await recreatePasswordWithChanges(Password.copy(password));
+      if (updatedPasswordId == -1) {
+        return false;
+      }
+
+      if (!await _dataChangeService.createDataChange(
+        activityType: ActivityType.modify,
+        userId: password.userId,
+        passwordBeforeChangeId: password.id,
+        passwordAfterChangeId: updatedPasswordId,
+      )) {
+        return false;
+      }
+    } else {
+      updatedPasswordId = await _passwordRepository.updatePassword(password);
+    }
+
+    if (updatedPasswordId == null || updatedPasswordId == -1) {
+      return false;
+    }
 
     final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(password.id);
     for (final Password sharedPassword in sharedPasswords) {
@@ -243,6 +342,7 @@ class PasswordService {
 
       sharedPassword.password = encryptedSharedPassword;
       sharedPassword.vector = sharedInitializationVector;
+      sharedPassword.ownerPasswordId = updatedPasswordId;
       sharedPassword.isSharedUpdated = true;
 
       if (await _passwordRepository.updatePassword(sharedPassword) == -1) {
@@ -250,7 +350,7 @@ class PasswordService {
       }
     }
 
-    return await _passwordRepository.updatePassword(password) > 0;
+    return true;
   }
 
   /// Shares password with other user.
@@ -321,5 +421,10 @@ class PasswordService {
     password.isSharedUpdated = true;
 
     return await _passwordRepository.createPassword(password) > 0;
+  }
+
+  /// Restores password to the point of given data change.
+  Future<bool> restorePassword({@required DataChange dataChange}) async {
+    return true;
   }
 }

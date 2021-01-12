@@ -40,7 +40,7 @@ class PasswordListBloc extends Bloc<PasswordListEvent, PasswordListState> {
 
   Stream<PasswordListState> _mapDisplayToState(PasswordDisplayEvent event) async* {
     final Either<Failure, String> failureOrPassword =
-        await _passwordService.getPassword(id: event.id, userPassword: event.password);
+        await _passwordService.getPassword(id: event.id, userPassword: event.password, isRegistered: true);
 
     yield failureOrPassword.fold(
       (Failure failure) => PasswordListErrorState(message: _mapFailureToMessage(failure)),
@@ -53,7 +53,7 @@ class PasswordListBloc extends Bloc<PasswordListEvent, PasswordListState> {
   }
 
   Stream<PasswordListState> _mapOpenToState(PasswordListOpenEvent event) async* {
-    final Either<Failure, List<Password>> failureOrList = await _passwordService.getPasswords(
+    final Either<Failure, List<Password>> failureOrList = await _passwordService.getActivePasswords(
       username: event.username,
     );
 

@@ -18,7 +18,7 @@ import 'password_service.dart';
 class UserService {
   /// Creates user service.
   UserService(this._userRepository, this._passwordRepository, this._logRepository, this._ipAddressRepository,
-      this._randomValuesGenerator, this._passwordService,
+      this._passwordService, this._randomValuesGenerator,
       {Clock clock})
       : _clock = clock ?? const Clock();
 
@@ -26,8 +26,10 @@ class UserService {
   final PasswordRepository _passwordRepository;
   final LogRepository _logRepository;
   final IpAddressRepository _ipAddressRepository;
-  final RandomValuesGenerator _randomValuesGenerator;
+
   final PasswordService _passwordService;
+
+  final RandomValuesGenerator _randomValuesGenerator;
   final Clock _clock;
 
   /// Validates user's credentials.

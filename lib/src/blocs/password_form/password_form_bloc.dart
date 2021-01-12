@@ -31,6 +31,7 @@ class PasswordFormBloc extends Bloc<PasswordFormEvent, PasswordFormState> {
       description: event.description,
       username: event.username,
       userPassword: event.userPassword,
+      isRegistered: true,
     );
 
     yield* _eitherCompletedOrFailureState(failureOrNull);

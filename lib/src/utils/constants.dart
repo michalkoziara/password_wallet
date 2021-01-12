@@ -14,4 +14,7 @@ class Constants {
 
   /// The name of the log table.
   static const String logTable = 'log';
+
+  /// The name of the data change table.
+  static const String dataChangeTable = 'dataChange';
 }
