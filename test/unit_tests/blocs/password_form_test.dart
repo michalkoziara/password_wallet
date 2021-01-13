@@ -3,7 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:password_wallet/src/blocs/blocs.dart';
-import 'package:password_wallet/src/services/password_service.dart';
+import 'package:password_wallet/src/services/services.dart';
 import 'package:password_wallet/src/utils/failure.dart';
 
 class MockPasswordService extends Mock implements PasswordService {}
@@ -21,12 +21,14 @@ void main() {
       build: () {
         when(
           mockPasswordService.addPassword(
-              login: anyNamed('login'),
-              webAddress: anyNamed('webAddress'),
-              password: anyNamed('password'),
-              description: anyNamed('description'),
-              username: anyNamed('username'),
-              userPassword: anyNamed('userPassword')),
+            login: anyNamed('login'),
+            webAddress: anyNamed('webAddress'),
+            password: anyNamed('password'),
+            description: anyNamed('description'),
+            username: anyNamed('username'),
+            userPassword: anyNamed('userPassword'),
+            isRegistered: true,
+          ),
         ).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, void>>.value(const Right<Failure, void>(null)),
         );
@@ -49,15 +51,15 @@ void main() {
     blocTest<PasswordFormBloc, PasswordFormState>(
       'emits [PasswordFormIncorrectState] when non existent user failure',
       build: () {
-        when(
-          mockPasswordService.addPassword(
-              login: anyNamed('login'),
-              webAddress: anyNamed('webAddress'),
-              password: anyNamed('password'),
-              description: anyNamed('description'),
-              username: anyNamed('username'),
-              userPassword: anyNamed('userPassword')),
-        ).thenAnswer(
+        when(mockPasswordService.addPassword(
+          login: anyNamed('login'),
+          webAddress: anyNamed('webAddress'),
+          password: anyNamed('password'),
+          description: anyNamed('description'),
+          username: anyNamed('username'),
+          userPassword: anyNamed('userPassword'),
+          isRegistered: true,
+        )).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, void>>.value(
             Left<Failure, void>(NonExistentUserFailure()),
           ),
@@ -81,15 +83,15 @@ void main() {
     blocTest<PasswordFormBloc, PasswordFormState>(
       'emits [PasswordFormIncorrectState] when password creation failure',
       build: () {
-        when(
-          mockPasswordService.addPassword(
-              login: anyNamed('login'),
-              webAddress: anyNamed('webAddress'),
-              password: anyNamed('password'),
-              description: anyNamed('description'),
-              username: anyNamed('username'),
-              userPassword: anyNamed('userPassword')),
-        ).thenAnswer(
+        when(mockPasswordService.addPassword(
+          login: anyNamed('login'),
+          webAddress: anyNamed('webAddress'),
+          password: anyNamed('password'),
+          description: anyNamed('description'),
+          username: anyNamed('username'),
+          userPassword: anyNamed('userPassword'),
+          isRegistered: true,
+        )).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, void>>.value(
             Left<Failure, void>(PasswordCreationFailure()),
           ),

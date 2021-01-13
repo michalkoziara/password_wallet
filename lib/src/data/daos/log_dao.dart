@@ -2,7 +2,7 @@ import 'package:sqflite_common/sqlite_api.dart';
 
 import '../../utils/constants.dart';
 import '../data_sources/database_provider.dart';
-import '../models/log.dart';
+import '../models/models.dart' show Log;
 
 /// A data access object representing a log data access.
 class LogDao {

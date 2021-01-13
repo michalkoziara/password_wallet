@@ -282,29 +282,6 @@ class PasswordService {
     password.password = encryptedPassword;
     password.vector = initializationVector;
 
-    int updatedPasswordId;
-    if (isRegistered) {
-      updatedPasswordId = await recreatePasswordWithChanges(Password.copy(password));
-      if (updatedPasswordId == -1) {
-        return false;
-      }
-
-      if (!await _dataChangeService.createDataChange(
-        activityType: ActivityType.modify,
-        userId: password.userId,
-        passwordBeforeChangeId: password.id,
-        passwordAfterChangeId: updatedPasswordId,
-      )) {
-        return false;
-      }
-    } else {
-      updatedPasswordId = await _passwordRepository.updatePassword(password);
-    }
-
-    if (updatedPasswordId == null || updatedPasswordId == -1) {
-      return false;
-    }
-
     final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(password.id);
     for (final Password sharedPassword in sharedPasswords) {
       final User user = await _userRepository.getUserById(sharedPassword.userId);
@@ -345,10 +322,42 @@ class PasswordService {
 
       sharedPassword.password = encryptedSharedPassword;
       sharedPassword.vector = sharedInitializationVector;
-      sharedPassword.ownerPasswordId = updatedPasswordId;
       sharedPassword.isSharedUpdated = true;
 
       if (await _passwordRepository.updatePassword(sharedPassword) == -1) {
+        return false;
+      }
+    }
+
+    final List<Password> updatedSharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(password.id);
+
+    int updatedPasswordId;
+    if (isRegistered) {
+      updatedPasswordId = await recreatePasswordWithChanges(Password.copy(password));
+      if (updatedPasswordId == -1) {
+        return false;
+      }
+
+      if (!await _dataChangeService.createDataChange(
+        activityType: ActivityType.modify,
+        userId: password.userId,
+        passwordBeforeChangeId: password.id,
+        passwordAfterChangeId: updatedPasswordId,
+      )) {
+        return false;
+      }
+    } else {
+      updatedPasswordId = await _passwordRepository.updatePassword(password);
+    }
+
+    if (updatedPasswordId == null || updatedPasswordId == -1) {
+      return false;
+    }
+
+    for (final Password updatedSharedPassword in updatedSharedPasswords) {
+      updatedSharedPassword.ownerPasswordId = updatedPasswordId;
+
+      if (await _passwordRepository.updatePassword(updatedSharedPassword) == -1) {
         return false;
       }
     }
@@ -427,13 +436,15 @@ class PasswordService {
   }
 
   /// Restores password to state before its data change.
-  Future<int> restorePassword({@required DataChange dataChange}) async {
+  Future<int> restorePassword({@required DataChange dataChange, @required String userPassword}) async {
     final Password currentPassword = await _passwordRepository.getPasswordById(dataChange.passwordId);
 
     currentPassword.isArchived = true;
     if (await _passwordRepository.updatePassword(currentPassword) == -1) {
       return -1;
     }
+
+    final List<Password> sharedPasswords = await _passwordRepository.getPasswordsByOwnerPasswordId(currentPassword.id);
 
     final Password previousPassword = await _passwordRepository.getPasswordById(dataChange.previousRecordId);
     previousPassword.id = null;
@@ -442,6 +453,66 @@ class PasswordService {
     final int restoredPasswordId = await _passwordRepository.createPassword(previousPassword);
     if (restoredPasswordId == -1) {
       return -1;
+    }
+
+    final Either<Failure, String> restoredPasswordResult =
+        await getPassword(id: restoredPasswordId, userPassword: userPassword);
+    final String restoredPasswordValue = restoredPasswordResult.getOrElse(() => null);
+
+    for (final Password sharedPassword in sharedPasswords) {
+      if (restoredPasswordValue == null) {
+        return -1;
+      }
+
+      final User user = await _userRepository.getUserById(sharedPassword.userId);
+
+      if (user == null) {
+        return -1;
+      }
+
+      /// Creates bytes from text values.
+      final Uint8List passwordBytes = Uint8List.fromList(utf8.encode(restoredPasswordValue));
+      final Uint8List sharedSecretKeyBytes = Uint8List.fromList(utf8.encode(user.passwordHash));
+      final Uint8List sharedInitializationVectorBytes = _randomValuesGenerator.generateRandomBytes(128 ~/ 8);
+
+      /// Hashes user password with MD5 algorithm.
+      final crypto.Digest sharedSecretKeyDigest = crypto.md5.convert(sharedSecretKeyBytes);
+      final Uint8List sharedSecretKeyDigestBytes = Uint8List.fromList(sharedSecretKeyDigest.bytes);
+
+      /// Creates AES in CBC mode with PKCS7 padding.
+      final PaddedBlockCipher aesCipher = PaddedBlockCipherImpl(
+        PKCS7Padding(),
+        CBCBlockCipher(AESFastEngine()),
+      );
+
+      /// Initializes algorithm with secret key and initialization vector.
+      aesCipher.init(
+        true,
+        PaddedBlockCipherParameters<CipherParameters, CipherParameters>(
+          ParametersWithIV<KeyParameter>(KeyParameter(sharedSecretKeyDigestBytes), sharedInitializationVectorBytes),
+          null,
+        ),
+      );
+
+      /// Encrypts password.
+      final Uint8List encryptedSharedPasswordBytes = aesCipher.process(passwordBytes);
+
+      /// Creates text from bytes.
+      final String encryptedSharedPassword = base64.encode(encryptedSharedPasswordBytes);
+      final String sharedInitializationVector = base64.encode(sharedInitializationVectorBytes);
+
+      sharedPassword.password = encryptedSharedPassword;
+      sharedPassword.vector = sharedInitializationVector;
+      sharedPassword.isSharedUpdated = true;
+      sharedPassword.ownerPasswordId = restoredPasswordId;
+
+      sharedPassword.login = previousPassword.login;
+      sharedPassword.webAddress = previousPassword.webAddress;
+      sharedPassword.description = previousPassword.description;
+
+      if (await _passwordRepository.updatePassword(sharedPassword) == -1) {
+        return -1;
+      }
     }
 
     await _dataChangeService.createDataChange(

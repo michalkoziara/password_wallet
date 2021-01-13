@@ -100,8 +100,7 @@ class Password {
 
   @override
   String toString() {
-    return '${password.substring(0, 5)}\n'
-        '$webAddress\n'
+    return '$webAddress\n'
         '$login\n'
         '$description';
   }

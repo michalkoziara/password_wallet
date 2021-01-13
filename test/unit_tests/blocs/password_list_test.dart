@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:password_wallet/src/blocs/blocs.dart';
 import 'package:password_wallet/src/data/models/models.dart';
-import 'package:password_wallet/src/services/password_service.dart';
+import 'package:password_wallet/src/services/services.dart';
 import 'package:password_wallet/src/utils/failure.dart';
 
 class MockPasswordService extends Mock implements PasswordService {}
@@ -21,7 +21,7 @@ void main() {
       'emits [PasswordListPopulatedState] when successful',
       build: () {
         when(
-          mockPasswordService.getPasswords(username: anyNamed('username')),
+          mockPasswordService.getActivePasswords(username: anyNamed('username')),
         ).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, List<Password>>>.value(
             const Right<Failure, List<Password>>(<Password>[]),
@@ -40,7 +40,7 @@ void main() {
       'emits [PasswordListErrorState] when non existent user failure',
       build: () {
         when(
-          mockPasswordService.getPasswords(username: anyNamed('username')),
+          mockPasswordService.getActivePasswords(username: anyNamed('username')),
         ).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, List<Password>>>.value(
             Left<Failure, List<Password>>(NonExistentUserFailure()),
@@ -59,7 +59,8 @@ void main() {
       'emits [PasswordListVisiblePasswordState] when successfully displayed password',
       build: () {
         when(
-          mockPasswordService.getPassword(id: anyNamed('id'), userPassword: anyNamed('userPassword')),
+          mockPasswordService.getPassword(
+              id: anyNamed('id'), userPassword: anyNamed('userPassword'), isRegistered: true),
         ).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, String>>.value(
             const Right<Failure, String>('Test Password'),
@@ -85,7 +86,8 @@ void main() {
       'emits [PasswordListErrorState] when non existent user failure',
       build: () {
         when(
-          mockPasswordService.getPassword(id: anyNamed('id'), userPassword: anyNamed('userPassword')),
+          mockPasswordService.getPassword(
+              id: anyNamed('id'), userPassword: anyNamed('userPassword'), isRegistered: true),
         ).thenAnswer(
           (Invocation realInvocation) => Future<Either<Failure, String>>.value(
             Left<Failure, String>(NonExistentUserFailure()),

@@ -4,7 +4,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 
 import '../../blocs/password_list/password_list.dart';
 import '../../data/models/models.dart' show Password;
-import '../../services/password_service.dart';
+import '../../services/services.dart';
 import 'password_edit_form.dart';
 
 /// An expandable list of passwords with descriptions.
@@ -429,6 +429,12 @@ class _PasswordsListState extends State<PasswordsList> {
                                                                           ownerPassword: widget.password)
                                                                       .then((bool result) {
                                                                     if (result) {
+                                                                      BlocProvider.of<PasswordListBloc>(context).add(
+                                                                        PasswordListOpenEvent(
+                                                                          username: widget.username,
+                                                                        ),
+                                                                      );
+
                                                                       Scaffold.of(context).showSnackBar(
                                                                         SnackBar(
                                                                           margin: const EdgeInsets.only(

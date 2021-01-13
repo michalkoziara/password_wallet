@@ -1,5 +1,5 @@
-import '../data/daos/data_change_dao.dart';
-import '../data/models/data_change.dart';
+import '../data/daos/daos.dart' show DataChangeDao;
+import '../data/models/models.dart' show DataChange;
 
 /// A data change access repository.
 class DataChangeRepository {

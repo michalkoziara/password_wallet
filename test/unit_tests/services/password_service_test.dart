@@ -4,9 +4,8 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:password_wallet/src/data/models/models.dart';
-import 'package:password_wallet/src/repositories/password_repository.dart';
-import 'package:password_wallet/src/repositories/user_repository.dart';
-import 'package:password_wallet/src/services/password_service.dart';
+import 'package:password_wallet/src/repositories/repositories.dart';
+import 'package:password_wallet/src/services/services.dart';
 import 'package:password_wallet/src/utils/failure.dart';
 import 'package:password_wallet/src/utils/random_values_generator.dart';
 
@@ -16,17 +15,21 @@ class MockUserRepository extends Mock implements UserRepository {}
 
 class MockPasswordRepository extends Mock implements PasswordRepository {}
 
+class MockDataChangeService extends Mock implements DataChangeService {}
+
 class MockRandomValuesGenerator extends Mock implements RandomValuesGenerator {}
 
 void main() {
   final MockUserRepository mockUserRepository = MockUserRepository();
   final MockPasswordRepository mockPasswordRepository = MockPasswordRepository();
+  final MockDataChangeService mockDataChangeService = MockDataChangeService();
   final MockRandomValuesGenerator mockRandomValuesGenerator = MockRandomValuesGenerator();
 
   setUp(() {});
   tearDown(() {
     reset(mockUserRepository);
     reset(mockPasswordRepository);
+    reset(mockDataChangeService);
     reset(mockRandomValuesGenerator);
   });
 
@@ -86,7 +89,7 @@ void main() {
                 );
 
                 final PasswordService passwordService =
-                    PasswordService(mockPasswordRepository, mockUserRepository, null);
+                    PasswordService(mockPasswordRepository, mockUserRepository, mockDataChangeService, null);
 
                 /// When
                 final Either<Failure, List<Password>> result =
@@ -124,7 +127,8 @@ void main() {
           when(mockUserRepository.getUserByUsername(any))
               .thenAnswer((Invocation realInvocation) => Future<User>.value(null));
 
-          final PasswordService passwordService = PasswordService(null, mockUserRepository, null);
+          final PasswordService passwordService =
+              PasswordService(null, mockUserRepository, mockDataChangeService, null);
 
           /// When
           final Either<Failure, List<Password>> result = await passwordService.getPasswords(username: null);
@@ -162,7 +166,8 @@ void main() {
           when(mockPasswordRepository.getPasswordById(any))
               .thenAnswer((Invocation realInvocation) => Future<Password>.value(testPassword));
 
-          final PasswordService passwordService = PasswordService(mockPasswordRepository, mockUserRepository, null);
+          final PasswordService passwordService =
+              PasswordService(mockPasswordRepository, mockUserRepository, mockDataChangeService, null);
 
           /// When
           final Either<Failure, String> result =
@@ -184,7 +189,8 @@ void main() {
 
           when(mockPasswordRepository.getPasswordById(any)).thenAnswer((Invocation realInvocation) => null);
 
-          final PasswordService passwordService = PasswordService(mockPasswordRepository, mockUserRepository, null);
+          final PasswordService passwordService =
+              PasswordService(mockPasswordRepository, mockUserRepository, mockDataChangeService, null);
 
           /// When
           final Either<Failure, String> result =
@@ -225,7 +231,8 @@ void main() {
           when(mockRandomValuesGenerator.generateRandomBytes(any))
               .thenAnswer((Invocation realInvocation) => testVectorBytes);
 
-          final PasswordService passwordService = PasswordService(null, null, mockRandomValuesGenerator);
+          final PasswordService passwordService =
+              PasswordService(null, null, mockDataChangeService, mockRandomValuesGenerator);
 
           /// When
           final Password result = passwordService.createPassword(
@@ -283,8 +290,8 @@ void main() {
           when(mockPasswordRepository.createPassword(any))
               .thenAnswer((Invocation realInvocation) => Future<int>.value(1));
 
-          final PasswordService passwordService =
-              PasswordService(mockPasswordRepository, mockUserRepository, mockRandomValuesGenerator);
+          final PasswordService passwordService = PasswordService(
+              mockPasswordRepository, mockUserRepository, mockDataChangeService, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await passwordService.addPassword(
@@ -321,7 +328,8 @@ void main() {
           /// Given
           when(mockUserRepository.getUserByUsername(any)).thenAnswer((Invocation realInvocation) => null);
 
-          final PasswordService passwordService = PasswordService(null, mockUserRepository, null);
+          final PasswordService passwordService =
+              PasswordService(null, mockUserRepository, mockDataChangeService, null);
 
           /// When
           final Either<Failure, void> result = await passwordService.addPassword(
@@ -373,8 +381,8 @@ void main() {
           when(mockPasswordRepository.createPassword(any))
               .thenAnswer((Invocation realInvocation) => Future<int>.value(-1));
 
-          final PasswordService passwordService =
-              PasswordService(mockPasswordRepository, mockUserRepository, mockRandomValuesGenerator);
+          final PasswordService passwordService = PasswordService(
+              mockPasswordRepository, mockUserRepository, mockDataChangeService, mockRandomValuesGenerator);
 
           /// When
           final Either<Failure, void> result = await passwordService.addPassword(

@@ -4,10 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart' show RepositoryProvider;
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../../data/models/data_change.dart';
 import '../../data/models/models.dart';
-import '../../services/data_change_service.dart';
-import '../../services/password_service.dart';
+import '../../services/services.dart';
 import '../../utils/failure.dart';
 import '../../utils/string_extension.dart';
 
@@ -34,6 +32,7 @@ class _DataChangesListState extends State<DataChangesList> {
 
   List<DataChange> _dataChanges = <DataChange>[];
   List<Password> _passwords = <Password>[];
+  final Map<int, String> _passwordValues = <int, String>{};
 
   @override
   void initState() {
@@ -44,10 +43,19 @@ class _DataChangesListState extends State<DataChangesList> {
         setState(() => _dataChanges = dataChanges.reversed.toList());
 
         RepositoryProvider.of<PasswordService>(context).getPasswords(username: widget.username).then(
-              (Either<Failure, List<Password>> result) => setState(
-                () => _passwords = result.getOrElse(() => <Password>[]),
-              ),
-            );
+          (Either<Failure, List<Password>> result) {
+            setState(() => _passwords = result.getOrElse(() => <Password>[]));
+
+            for (final Password password in _passwords) {
+              RepositoryProvider.of<PasswordService>(context)
+                  .getPassword(id: password.id, userPassword: widget.userPassword)
+                  .then(
+                    (Either<Failure, String> passwordValue) => setState(
+                        () => _passwordValues.putIfAbsent(password.id, () => passwordValue.getOrElse(() => ''))),
+                  );
+            }
+          },
+        );
       },
     );
   }
@@ -123,7 +131,7 @@ class _DataChangesListState extends State<DataChangesList> {
                         child: FlatButton(
                           onPressed: () {
                             RepositoryProvider.of<PasswordService>(context)
-                                .restorePassword(dataChange: _dataChanges[index])
+                                .restorePassword(dataChange: _dataChanges[index], userPassword: widget.userPassword)
                                 .then((int restoredPasswordId) {
                               String messageText = '';
                               if (restoredPasswordId != -1) {
@@ -138,10 +146,20 @@ class _DataChangesListState extends State<DataChangesList> {
                                     RepositoryProvider.of<PasswordService>(context)
                                         .getPasswords(username: widget.username)
                                         .then(
-                                          (Either<Failure, List<Password>> result) => setState(
-                                            () => _passwords = result.getOrElse(() => <Password>[]),
-                                          ),
-                                        );
+                                      (Either<Failure, List<Password>> result) {
+                                        setState(() => _passwords = result.getOrElse(() => <Password>[]));
+
+                                        for (final Password password in _passwords) {
+                                          RepositoryProvider.of<PasswordService>(context)
+                                              .getPassword(id: password.id, userPassword: widget.userPassword)
+                                              .then(
+                                                (Either<Failure, String> passwordValue) => setState(() =>
+                                                    _passwordValues.putIfAbsent(
+                                                        password.id, () => passwordValue.getOrElse(() => ''))),
+                                              );
+                                        }
+                                      },
+                                    );
                                   },
                                 );
                               } else {
@@ -211,8 +229,11 @@ class _DataChangesListState extends State<DataChangesList> {
     final List<Password> previousPasswords =
         _passwords.where((Password password) => password.id == _dataChanges[index].previousRecordId).toList();
 
-    final List<Password> presentPasswords =
-        _passwords.where((Password password) => password.id == _dataChanges[index].presentRecordId).toList();
+    List<Password> presentPasswords = <Password>[];
+    if (_dataChanges[index].actionType != 'delete') {
+      presentPasswords =
+          _passwords.where((Password password) => password.id == _dataChanges[index].presentRecordId).toList();
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -224,11 +245,21 @@ class _DataChangesListState extends State<DataChangesList> {
             textAlign: TextAlign.center,
           ),
           Text(
-            previousPasswords.isEmpty ? '' : previousPasswords[0].toString(),
+            previousPasswords.isEmpty
+                ? ''
+                : previousPasswords[0].toString() +
+                    (_passwordValues.containsKey(previousPasswords[0].id)
+                        ? '\n${_passwordValues[previousPasswords[0].id]}'
+                        : ''),
             textAlign: TextAlign.center,
           ),
           Text(
-            presentPasswords.isEmpty ? '' : presentPasswords[0].toString(),
+            presentPasswords.isEmpty
+                ? ''
+                : presentPasswords[0].toString() +
+                    (_passwordValues.containsKey(presentPasswords[0].id)
+                        ? '\n${_passwordValues[presentPasswords[0].id]}'
+                        : ''),
             textAlign: TextAlign.center,
           ),
           SizedBox(

@@ -4,9 +4,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 import 'blocs/blocs.dart' show RegistrationBloc, PasswordFormBloc, ProfileFormBloc, PasswordListBloc;
 import 'pages/login/login_page.dart';
-import 'repositories/data_change_repository.dart';
 import 'repositories/repositories.dart';
-import 'services/data_change_service.dart';
 import 'services/services.dart';
 import 'utils/constants.dart';
 import 'utils/random_values_generator.dart';

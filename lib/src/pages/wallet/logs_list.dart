@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' show RepositoryProvider;
 import 'package:flutter_icons/flutter_icons.dart';
 
-import '../../data/models/log.dart';
+import '../../data/models/models.dart' show Log;
 import '../../services/services.dart';
 
 /// A list of logs.

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart' show RepositoryProvider;
 import 'package:flutter_icons/flutter_icons.dart';
 
 import '../../data/models/models.dart';
-import '../../services/password_service.dart';
+import '../../services/services.dart';
 import '../../utils/failure.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_form_field.dart';

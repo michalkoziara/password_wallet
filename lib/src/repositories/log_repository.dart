@@ -1,5 +1,5 @@
-import '../data/daos/log_dao.dart';
-import '../data/models/log.dart';
+import '../data/daos/daos.dart' show LogDao;
+import '../data/models/models.dart' show Log;
 
 /// An log data access repository.
 class LogRepository {
